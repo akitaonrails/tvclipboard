@@ -515,9 +515,10 @@
                     })
                     .catch(err => {
                         console.error('Failed to read clipboard:', err);
-                        alert('Unable to paste. Please type manually.');
+                        alert('Clipboard access blocked.\n\nOn mobile: Long-press in textarea and select "Paste"\n\nOn desktop: Use Ctrl+V / Cmd+V');
                     });
             } else {
+                alert('Clipboard access not supported.\nOn mobile: Long-press in textarea and select "Paste"');
                 document.getElementById('input').focus();
             }
         }

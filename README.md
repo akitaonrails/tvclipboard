@@ -39,7 +39,7 @@ Open in browser and scan QR code with your phone
 Navigate to any of the URLs shown in the console output (localhost works fine for desktop access)
 
 ### 4. Connect your mobile device
-- The first device to connect becomes **Host** - it shows the QR code and received text
+- The first device to connect becomes **Host** - it shows QR code and received text
 - Scan the QR code with another device or open the network URL
 - Additional devices connect as **Clients** - they have a simple interface for sending only
 
@@ -57,12 +57,16 @@ Navigate to any of the URLs shown in the console output (localhost works fine fo
 ## Tips
 
 - All connected devices receive messages sent by any client
-- Only the host sees received messages box (other clients just send)
+- Only the host sees the received messages box (other clients just send)
 - Perfect for phone-to-phone clipboard sharing!
 - Multiple clients can connect to the same host simultaneously
 - **Encryption**: Messages are encrypted with AES-GCM (same default key on all devices)
-  - For better security, edit the `sharedKey` variable in `static/index.html` and use a custom key
+  - For better security, edit the `sharedKey` variable in `static/index.html` line 312
 - **Privacy**: Click on blurred received content to reveal it (protects passwords from prying eyes)
+- **Paste Button Limitations**:
+  - Browsers require HTTPS for automatic clipboard paste button
+  - On `http://` (like local network), use long-press in textarea → "Paste"
+  - Paste button works on `https://` or `localhost://`
 
 ## Requirements
 
