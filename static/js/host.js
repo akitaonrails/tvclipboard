@@ -156,6 +156,7 @@ function refreshPage() {
 
 function connect() {
     const url = getWebSocketURL();
+    console.log('Attempting to connect to WebSocket URL:', url);
 
     ws = new WebSocket(url);
 
@@ -168,17 +169,19 @@ function connect() {
         startTimer();
     };
 
-    ws.onclose = function() {
+    ws.onclose = function(event) {
         const status = document.getElementById('status');
         status.textContent = '🔌 Disconnected';
         status.className = 'status disconnected';
-        console.log('WebSocket disconnected');
+        console.log('WebSocket disconnected. Code:', event.code, 'Reason:', event.reason);
 
         setTimeout(connect, 3000);
     };
 
     ws.onerror = function(error) {
         console.error('WebSocket error:', error);
+        console.log('Current location:', window.location.href);
+        console.log('WebSocket URL:', url);
     };
 
     ws.onmessage = function(event) {

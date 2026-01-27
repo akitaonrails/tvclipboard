@@ -110,6 +110,8 @@ func (s *Server) handleWebSocket(w http.ResponseWriter, r *http.Request) {
 
 	hostExists := s.hub.HasHost()
 
+	log.Printf("WebSocket connection attempt from %s, token: %q, hostExists: %v", r.RemoteAddr, token, hostExists)
+
 	// Require token for client connections (when host already exists)
 	if hostExists {
 		if token == "" {
@@ -136,6 +138,8 @@ func (s *Server) handleWebSocket(w http.ResponseWriter, r *http.Request) {
 		log.Println("WebSocket upgrade error:", err)
 		return
 	}
+
+	log.Printf("WebSocket connection established from %s", r.RemoteAddr)
 
 	mobile := r.URL.Query().Get("mobile") == "true"
 	client := hub.NewClient(conn, s.hub, mobile)
