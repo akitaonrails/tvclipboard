@@ -91,7 +91,7 @@ tvclipboard/
 - **pkg/hub**: WebSocket connection management, message broadcasting, role assignment
 - **pkg/qrcode**: QR code generation, HTML injection for session timeout
 - **pkg/server**: HTTP route handlers, WebSocket upgrades, static file serving
-- **pkg/config**: Environment variable parsing, IP detection, startup logging
+- **pkg/config**: CLI argument parsing, environment variable parsing, IP detection, startup logging
 
 ## Testing
 
@@ -112,7 +112,14 @@ go test ./pkg/token -v -run TestTokenGeneration
 
 ### Test Coverage
 
-The test suite includes 46 tests covering:
+The test suite includes 54 tests covering:
+
+**pkg/config (6 tests)**
+- Default configuration loading
+- Environment variable configuration
+- CLI argument configuration
+- CLI flags override environment variables
+- Invalid/zero/negative timeout handling
 
 **pkg/token (17 tests)**
 - Token generation with valid format
@@ -143,13 +150,15 @@ The test suite includes 46 tests covering:
 - Session timeout HTML injection
 - HTML replacement utilities
 
-**pkg/server (7 tests)**
+**pkg/server (9 tests)**
 - Host connection without token succeeds
 - Host connection with token is rejected
 - Client connection without token is rejected when host exists
 - Client connection with invalid/expired token is rejected
 - QR code endpoint generation
 - Client URL handling
+- Cache busting version injection
+- Version format validation (YYYYMMDDHHMMSS)
 
 ### Test Coverage
 
@@ -199,13 +208,32 @@ You can configure session security using environment variables:
 - Default: 10 minutes
 - Example: `TVCLIPBOARD_SESSION_TIMEOUT=15`
 
-### Usage Example
+### Usage Examples
+
+**Option 1: Environment Variables**
 ```bash
 # Set custom private key and 15-minute timeout
 export TVCLIPBOARD_PRIVATE_KEY="your-32-byte-hex-key-here"
 export TVCLIPBOARD_SESSION_TIMEOUT=15
 ./tvclipboard
 ```
+
+**Option 2: CLI Arguments (simpler for direct usage)**
+```bash
+# Show help
+./tvclipboard --help
+
+# Run with custom port and session timeout
+./tvclipboard --port 9999 --expires 5
+
+# Run with custom private key
+./tvclipboard --key "deadbeef1234567890abcdef1234567890"
+
+# Combine all options
+./tvclipboard --port 8080 --expires 15 --key "your-key-here"
+```
+
+**Configuration Priority:** CLI flags override environment variables, which override defaults.
 
 ### Token Encryption
 Session tokens are encrypted using AES-GCM with your private key:
