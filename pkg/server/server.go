@@ -4,6 +4,8 @@ import (
 	"io/fs"
 	"log"
 	"net/http"
+	"regexp"
+	"time"
 
 	"github.com/gorilla/websocket"
 	"tvclipboard/pkg/hub"
@@ -23,6 +25,7 @@ type Server struct {
 	tokenManager   *token.TokenManager
 	qrGenerator    *qrcode.Generator
 	staticFiles    fs.FS
+	version        string
 }
 
 // NewServer creates a new Server instance
@@ -32,6 +35,7 @@ func NewServer(h *hub.Hub, tm *token.TokenManager, qrGen *qrcode.Generator, stat
 		tokenManager: tm,
 		qrGenerator:  qrGen,
 		staticFiles:  staticFiles,
+		version:      time.Now().Format("20060102150405"),
 	}
 }
 
@@ -73,11 +77,15 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Inject session timeout as a data attribute
+	// Inject session timeout as a data attribute and cache busting version
 	htmlContent := string(content)
 	if mode == "client" {
 		htmlContent = qrcode.InjectSessionTimeout(htmlContent, s.qrGenerator.SessionTimeoutSeconds())
 	}
+
+	// Add version to all static JS files
+	jsRegex := regexp.MustCompile(`(<script src="/static/js/[^"]+\.js)">`)
+	htmlContent = jsRegex.ReplaceAllString(htmlContent, `$1?v=`+s.version+`">`)
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.Write([]byte(htmlContent))

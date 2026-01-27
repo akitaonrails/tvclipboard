@@ -1,6 +1,7 @@
 package server
 
 import (
+	"io"
 	"io/fs"
 	"net/http"
 	"net/http/httptest"
@@ -21,6 +22,29 @@ type testFS struct{}
 func (testFS) Open(name string) (fs.File, error) {
 	// Return a minimal HTML for testing
 	return nil, &fs.PathError{Op: "open", Path: name, Err: fs.ErrNotExist}
+}
+
+func (testFS) ReadFile(name string) ([]byte, error) {
+	// Minimal HTML for version injection testing
+	if strings.HasSuffix(name, "host.html") {
+		return []byte(`<!DOCTYPE html>
+<html>
+<body>
+<script src="/static/js/common.js"></script>
+<script src="/static/js/host.js"></script>
+</body>
+</html>`), nil
+	}
+	if strings.HasSuffix(name, "client.html") {
+		return []byte(`<!DOCTYPE html>
+<html>
+<body class="container">
+<script src="/static/js/common.js"></script>
+<script src="/static/js/client.js"></script>
+</body>
+</html>`), nil
+	}
+	return nil, &fs.PathError{Op: "read", Path: name, Err: fs.ErrNotExist}
 }
 
 var mockStaticFiles testFS
@@ -257,5 +281,65 @@ func TestQRCodeEndpoint(t *testing.T) {
 	contentType := resp.Header.Get("Content-Type")
 	if contentType != "image/png" {
 		t.Errorf("Expected content-type image/png, got %s", contentType)
+	}
+}
+
+// TestCacheBustingVersion tests that script tags include dynamic version parameter
+func TestCacheBustingVersion(t *testing.T) {
+	tm := token.NewTokenManager("", 10)
+	h := hub.NewHub()
+	go h.Run()
+
+	qrGen := qrcode.NewGenerator("localhost:3333", "http", 10*60*1e9)
+
+	srv := NewServer(h, tm, qrGen, mockStaticFiles)
+
+	// Create test server
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		srv.handleIndex(w, r)
+	}))
+	defer server.Close()
+
+	// Test host page
+	resp, err := http.Get(server.URL + "/?mode=host")
+	if err != nil {
+		t.Fatalf("Failed to make request: %v", err)
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		t.Fatalf("Failed to read response body: %v", err)
+	}
+
+	// Check that version is added to script tags
+	if !strings.Contains(string(body), `<script src="/static/js/common.js?v=`+srv.version+`">`) {
+		t.Errorf("Expected common.js to have version parameter, got: %s", string(body))
+	}
+	if !strings.Contains(string(body), `<script src="/static/js/host.js?v=`+srv.version+`">`) {
+		t.Errorf("Expected host.js to have version parameter, got: %s", string(body))
+	}
+}
+
+// TestVersionPattern tests that version string matches expected format
+func TestVersionPattern(t *testing.T) {
+	tm := token.NewTokenManager("", 10)
+	h := hub.NewHub()
+	go h.Run()
+
+	qrGen := qrcode.NewGenerator("localhost:3333", "http", 10*60*1e9)
+
+	srv := NewServer(h, tm, qrGen, mockStaticFiles)
+
+	// Version should be 14 digits (YYYYMMDDHHMMSS)
+	if len(srv.version) != 14 {
+		t.Errorf("Expected version to be 14 digits, got %d", len(srv.version))
+	}
+
+	// Version should be numeric
+	for _, c := range srv.version {
+		if c < '0' || c > '9' {
+			t.Errorf("Version should be numeric, got invalid character: %c", c)
+		}
 	}
 }

@@ -107,3 +107,97 @@ function generateQRCode() {
 
     urlText.textContent = url + ' (Links to client mode)';
 }
+
+let ws;
+let timerInterval;
+const sessionTimeout = 600;
+
+function formatTime(seconds) {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+}
+
+function startTimer() {
+    let remaining = sessionTimeout;
+    const timerEl = document.getElementById('time-remaining');
+
+    timerInterval = setInterval(function() {
+        remaining--;
+        if (timerEl) {
+            timerEl.textContent = formatTime(remaining);
+        }
+
+        if (remaining <= 0) {
+            clearInterval(timerInterval);
+            refreshPage();
+        } else if (remaining <= 60) {
+            if (timerEl) {
+                timerEl.style.color = '#ff6b6b';
+                timerEl.style.animation = 'pulse 1s infinite';
+            }
+        }
+    }, 1000);
+
+    if (timerEl) {
+        timerEl.textContent = formatTime(remaining);
+    }
+}
+
+function refreshPage() {
+    const timerEl = document.getElementById('timer');
+    if (timerEl) {
+        timerEl.innerHTML = '⏱️ <span style="color: #4CAF50;">Refreshing QR code...</span>';
+    }
+    setTimeout(function() {
+        location.reload();
+    }, 2000);
+}
+
+function connect() {
+    const url = getWebSocketURL();
+
+    ws = new WebSocket(url);
+
+    ws.onopen = function() {
+        const status = document.getElementById('status');
+        status.textContent = '🖥️ Host Mode - Connected';
+        status.className = 'status connected';
+        console.log('WebSocket connected');
+
+        startTimer();
+    };
+
+    ws.onclose = function() {
+        const status = document.getElementById('status');
+        status.textContent = '🔌 Disconnected';
+        status.className = 'status disconnected';
+        console.log('WebSocket disconnected');
+
+        setTimeout(connect, 3000);
+    };
+
+    ws.onerror = function(error) {
+        console.error('WebSocket error:', error);
+    };
+
+    ws.onmessage = function(event) {
+        const message = JSON.parse(event.data);
+        console.log('Received message:', message);
+
+        if (message.type === 'role') {
+            handleRoleAssignment(message.role);
+        } else if (message.type === 'text' && message.content) {
+            showReceivedContent(message.content, message.from);
+        }
+    };
+}
+
+function handleRoleAssignment(role) {
+    if (role !== 'host') {
+        console.warn('Expected host role but got:', role);
+    }
+    generateQRCode();
+}
+
+connect();
