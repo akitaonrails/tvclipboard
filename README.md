@@ -61,6 +61,7 @@ Navigate to any of the URLs shown in the console output (localhost works fine fo
 - **Host Mode**: First client to connect. Shows QR code and received content.
 - **Client Mode**: Subsequent clients. Simplified interface for sending only.
 - Works for phone-to-phone, desktop-to-phone, or any combination!
+- **Only ONE host at a time**: The system allows only a single host connection. If you try to open host.html on another device while a host is already connected, it will be rejected with an error message.
 - If the host disconnects, the next connected client becomes the new host.
 
 ## Tips

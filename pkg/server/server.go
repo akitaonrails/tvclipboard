@@ -116,7 +116,7 @@ func (s *Server) handleWebSocket(w http.ResponseWriter, r *http.Request) {
 	if hostExists {
 		if token == "" {
 			log.Printf("Connection rejected: no token provided (host exists)")
-			http.Error(w, "Token required for connection", http.StatusUnauthorized)
+			http.Error(w, "A host is already connected from another device. Close the other host.html tab to connect as host here, or scan the QR code from this device to connect as a client.", http.StatusUnauthorized)
 			return
 		}
 

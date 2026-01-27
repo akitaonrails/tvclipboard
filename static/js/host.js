@@ -164,6 +164,10 @@ function connect() {
         const status = document.getElementById('status');
         status.textContent = '🖥️ Host Mode - Connected';
         status.className = 'status connected';
+
+        const errorEl = document.getElementById('error-message');
+        errorEl.style.display = 'none';
+
         console.log('WebSocket connected');
 
         startTimer();
@@ -182,6 +186,15 @@ function connect() {
         console.error('WebSocket error:', error);
         console.log('Current location:', window.location.href);
         console.log('WebSocket URL:', url);
+
+        const errorEl = document.getElementById('error-message');
+        const statusEl = document.getElementById('status');
+
+        if (ws.readyState === WebSocket.CLOSED) {
+            errorEl.textContent = 'A host is already connected from another device. Close the other host.html tab to connect as host here, or scan the QR code from this device to connect as a client.';
+            errorEl.style.display = 'block';
+            statusEl.textContent = '❌ Connection Rejected';
+        }
     };
 
     ws.onmessage = function(event) {
