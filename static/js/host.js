@@ -91,7 +91,7 @@ function toggleReveal() {
 }
 
 function generateQRCode() {
-    const url = getPublicURL();
+    const url = getPublicURL().replace(/\?.*$/, '?mode=client');
     const container = document.getElementById('qrcode');
     const urlText = document.getElementById('url-text');
 
@@ -105,5 +105,5 @@ function generateQRCode() {
     container.innerHTML = '';
     container.appendChild(img);
 
-    urlText.textContent = url;
+    urlText.textContent = url + ' (Scan to connect as client)';
 }
