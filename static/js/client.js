@@ -285,22 +285,25 @@ function connect() {
     };
 }
 
-function handleRoleAssignment(role) {
-    if (role !== 'client') {
-        console.warn('Expected client role but got:', role);
-        disableAll();
-        showError('Invalid role assignment. Please scan the QR code from the host device.');
+    function handleRoleAssignment(role) {
+        if (role !== 'client') {
+            console.warn('Expected client role but got:', role);
+            disableAll();
+            showError('Invalid role assignment. Please scan the QR code from the host device.');
+        }
     }
-}
 
-const originalSendText = window.sendText;
-window.sendText = function() {
-    if (sessionExpired) {
-        alert('Session has expired. Please scan the new QR code.');
-        return;
-    }
-    return originalSendText();
-};
+    // Expose functions needed by HTML onclick handlers
+    // Note: sendText gets session checking wrapper to preserve original behavior
+    window.sendText = function() {
+        if (sessionExpired) {
+            alert('Session has expired. Please scan the new QR code.');
+            return;
+        }
+        return sendText();
+    };
+    window.copyFromClipboard = copyFromClipboard;
+    window.clearInput = clearInput;
 
-connect();
+    connect();
 })();

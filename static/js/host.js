@@ -223,5 +223,9 @@ function handleRoleAssignment(role) {
     generateQRCode();
 }
 
+// Expose functions needed by HTML onclick handlers
+window.toggleReveal = toggleReveal;
+window.copyReceived = copyReceived;
+
 connect();
 })();
