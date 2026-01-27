@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TV Clipboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 600px;
+            width: 100%;
+            padding: 40px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .status {
+            text-align: center;
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .status.connected {
+            background: #10b981;
+            color: white;
+        }
+
+        .status.disconnected {
+            background: #ef4444;
+            color: white;
+        }
+
+        .mobile-mode .qr-section,
+        .mobile-mode .received-section,
+        .mobile-mode .clear-btn,
+        .mobile-mode .copy-btn {
+            display: none;
+        }
+
+        .mobile-mode .button-group {
+            gap: 0;
+        }
+
+        .mobile-mode .send-btn {
+            flex: 1;
+        }
+
+        .host-mode .input-section {
+            display: none;
+        }
+
+        .qr-section {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f3f4f6;
+            border-radius: 15px;
+        }
+
+        .qr-section h2 {
+            color: #333;
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+
+        #qrcode {
+            display: inline-block;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        #qrcode img {
+            display: block;
+        }
+
+        .url-text {
+            margin-top: 15px;
+            font-family: monospace;
+            font-size: 12px;
+            color: #666;
+            word-break: break-all;
+        }
+
+        .input-section {
+            margin-bottom: 30px;
+        }
+
+        .input-section h2 {
+            color: #333;
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 150px;
+            padding: 15px;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            font-size: 16px;
+            resize: vertical;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        button {
+            flex: 1;
+            padding: 15px 30px;
+            font-size: 16px;
+            font-weight: 600;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .send-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .copy-btn {
+            background: #10b981;
+            color: white;
+        }
+
+        .clear-btn {
+            background: #ef4444;
+            color: white;
+        }
+
+        .received-section {
+            display: none;
+            padding: 20px;
+            background: #f3f4f6;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .received-section.show {
+            display: block;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .received-section h2 {
+            color: #333;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+
+        .received-content {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-size: 14px;
+            color: #333;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .timestamp {
+            font-size: 12px;
+            color: #999;
+            margin-top: 10px;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 25px;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+        }
+
+        .mode-switch {
+            text-align: center;
+            margin-top: 10px;
+            font-size: 12px;
+            color: #999;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 id="title">📋 TV Clipboard</h1>
+        <p class="subtitle" id="subtitle">Share text between your devices</p>
+        <div class="mode-switch" id="mode-switch"></div>
+
+        <div id="status" class="status disconnected">
+            🔌 Disconnected
+        </div>
+
+        <div class="qr-section">
+            <h2>📱 Scan with your phone</h2>
+            <div id="qrcode"></div>
+            <div class="url-text" id="url-text"></div>
+        </div>
+
+        <div class="input-section">
+            <h2>✍️ Enter or paste text</h2>
+            <textarea id="input" placeholder="Type or paste text here, then click Send..."></textarea>
+            <div class="button-group">
+                <button class="send-btn" onclick="sendText()">Send</button>
+                <button class="copy-btn" onclick="copyFromClipboard()">Paste</button>
+                <button class="clear-btn" onclick="clearInput()">Clear</button>
+            </div>
+        </div>
+
+        <div id="received-section" class="received-section">
+            <h2>📥 Received</h2>
+            <div id="received-content" class="received-content"></div>
+            <div class="timestamp" id="timestamp"></div>
+            <div class="button-group">
+                <button class="copy-btn" onclick="copyReceived()">Copy to Clipboard</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let ws;
+        let isHost = false;
+
+        function getWebSocketURL() {
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const host = window.location.host;
+            return `${protocol}//${host}/ws`;
+        }
+
+        function getPublicURL() {
+            return window.location.href;
+        }
+
+        function generateQRCode() {
+            const url = getPublicURL();
+            const container = document.getElementById('qrcode');
+            const urlText = document.getElementById('url-text');
+
+            // Use server-side generated QR code
+            const img = document.createElement('img');
+            img.src = '/qrcode.png?' + Date.now();
+            img.alt = 'QR Code';
+            img.style.width = '200px';
+            img.style.height = '200px';
+
+            container.innerHTML = '';
+            container.appendChild(img);
+
+            urlText.textContent = url;
+        }
+
+        function connect() {
+            const url = getWebSocketURL();
+
+            ws = new WebSocket(url);
+
+            ws.onopen = function() {
+                const status = document.getElementById('status');
+                status.textContent = '🔌 Connecting...';
+                status.className = 'status connected';
+                console.log('WebSocket connected');
+            };
+
+            ws.onclose = function() {
+                const status = document.getElementById('status');
+                status.textContent = '🔌 Disconnected';
+                status.className = 'status disconnected';
+                console.log('WebSocket disconnected');
+
+                // Reconnect after 3 seconds
+                setTimeout(connect, 3000);
+            };
+
+            ws.onerror = function(error) {
+                console.error('WebSocket error:', error);
+            };
+
+            ws.onmessage = function(event) {
+                const message = JSON.parse(event.data);
+                console.log('Received message:', message);
+
+                if (message.type === 'role') {
+                    handleRoleAssignment(message.role);
+                } else if (message.type === 'text' && message.content) {
+                    showReceivedContent(message.content, message.from);
+                }
+            };
+        }
+
+        function sendText() {
+            const input = document.getElementById('input');
+            const content = input.value.trim();
+
+            if (!content) {
+                alert('Please enter some text');
+                return;
+            }
+
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                const message = {
+                    type: 'text',
+                    content: content
+                };
+                ws.send(JSON.stringify(message));
+                console.log('Sent message:', message);
+                input.value = '';
+            } else {
+                alert('Not connected. Please wait...');
+            }
+        }
+
+        function handleRoleAssignment(role) {
+            isHost = (role === 'host');
+            const title = document.getElementById('title');
+            const subtitle = document.getElementById('subtitle');
+            const status = document.getElementById('status');
+            const modeSwitch = document.getElementById('mode-switch');
+
+            if (isHost) {
+                // Host mode: show QR code and received section
+                document.body.classList.remove('mobile-mode');
+                document.body.classList.add('host-mode');
+                title.textContent = '📋 TV Clipboard (Host)';
+                subtitle.textContent = 'Share text between your devices';
+                status.textContent = '🖥️ Host Mode';
+                modeSwitch.textContent = 'You are the host';
+                generateQRCode();
+            } else {
+                // Client mode: simplified interface for sending only
+                document.body.classList.remove('host-mode');
+                document.body.classList.add('mobile-mode');
+                title.textContent = '📱 Send to Host';
+                subtitle.textContent = 'Paste text here and send';
+                status.textContent = '📱 Client Mode';
+                modeSwitch.textContent = 'Connected to host';
+            }
+
+            console.log(`Assigned role: ${role}`);
+        }
+
+        function copyFromClipboard() {
+            if (navigator.clipboard && navigator.clipboard.readText) {
+                navigator.clipboard.readText()
+                    .then(text => {
+                        document.getElementById('input').value = text;
+                    })
+                    .catch(err => {
+                        console.error('Failed to read clipboard:', err);
+                        alert('Unable to paste. Please type manually.');
+                    });
+            } else {
+                document.getElementById('input').focus();
+            }
+        }
+
+        function clearInput() {
+            document.getElementById('input').value = '';
+        }
+
+        function showReceivedContent(content, from) {
+            const section = document.getElementById('received-section');
+            const contentDiv = document.getElementById('received-content');
+            const timestamp = document.getElementById('timestamp');
+
+            contentDiv.textContent = content;
+            section.classList.add('show');
+
+            const now = new Date();
+            timestamp.textContent = `Received at ${now.toLocaleTimeString()}`;
+
+            // Try to copy to clipboard automatically
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(content)
+                    .then(() => {
+                        console.log('Auto-copied to clipboard');
+                    })
+                    .catch(err => {
+                        console.error('Auto-copy failed:', err);
+                    });
+            }
+        }
+
+        function copyReceived() {
+            const content = document.getElementById('received-content').textContent;
+
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(content)
+                    .then(() => {
+                        alert('Copied to clipboard!');
+                    })
+                    .catch(err => {
+                        console.error('Failed to copy:', err);
+                        alert('Failed to copy to clipboard');
+                    });
+            } else {
+                alert('Clipboard not supported');
+            }
+        }
+
+        // Allow Enter key to send (with Shift+Enter for new line)
+        document.getElementById('input').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendText();
+            }
+        });
+
+        // Initialize
+        connect();
+    </script>
+</body>
+</html>
