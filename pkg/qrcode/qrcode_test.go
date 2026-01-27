@@ -18,7 +18,7 @@ func TestQRCodeGeneration(t *testing.T) {
 		if r.TLS != nil {
 			scheme = "https"
 		}
-		url := scheme + "://localhost:8080?token=abc123&mode=client"
+		url := scheme + "://localhost:3333?token=abc123&mode=client"
 
 		png, err := qrcodeLib.Encode(url, qrcodeLib.Medium, 256)
 		if err != nil {
@@ -68,7 +68,7 @@ func TestQRCodeURLFormat(t *testing.T) {
 	encrypted := "abc123def456"
 	timeout := 10 * time.Minute
 
-	g := NewGenerator("192.168.1.100:8080", "http", timeout)
+	g := NewGenerator("192.168.1.100:3333", "http", timeout)
 	url := g.GenerateQRCodeURL(encrypted)
 
 	// Verify URL structure
@@ -95,10 +95,10 @@ func TestQRCodeURLFormat(t *testing.T) {
 // TestQRCodeGenerator tests QR code generator configuration
 func TestQRCodeGenerator(t *testing.T) {
 	timeout := 10 * time.Minute
-	g := NewGenerator("localhost:8080", "http", timeout)
+	g := NewGenerator("localhost:3333", "http", timeout)
 
-	if g.Host() != "localhost:8080" {
-		t.Errorf("Expected host 'localhost:8080', got '%s'", g.Host())
+	if g.Host() != "localhost:3333" {
+		t.Errorf("Expected host 'localhost:3333', got '%s'", g.Host())
 	}
 
 	if g.Scheme() != "http" {

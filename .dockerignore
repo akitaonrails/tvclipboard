@@ -1,0 +1,48 @@
+# Git files
+.git
+.gitignore
+.gitattributes
+
+# Documentation
+README.md
+LICENSE
+
+# CI/CD
+.github
+
+# Docker files
+Dockerfile
+.dockerignore
+docker-compose.yml
+
+# Test and coverage files
+*_test.go
+coverage.out
+coverage.html
+*.test
+
+# IDE and editor files
+.idea
+.vscode
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Build artifacts
+tvclipboard
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Dependency directories
+vendor/
+
+# Temporary files
+tmp
+temp
+*.log
+
+# OS files
+Thumbs.db

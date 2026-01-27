@@ -1,0 +1,45 @@
+services:
+  tvclipboard:
+    # Build from local Dockerfile (for development/testing)
+    build: .
+
+    # OR pull from Docker Hub (uncomment for production use)
+    # image: akitaonrails/tvclipboard:latest
+
+    container_name: tvclipboard
+    restart: unless-stopped
+
+    # Port mapping: host:container
+    ports:
+      - "3333:3333"
+
+    # Environment variables (optional)
+    environment:
+      # Port to listen on (default: 3333)
+      - PORT=3333
+
+      # Session timeout in minutes (default: 10)
+      # After this time, QR codes expire and clients are disconnected
+      - TVCLIPBOARD_SESSION_TIMEOUT=10
+
+      # Optional: 32-byte hex private key for token encryption
+      # If not set, a random key is generated on each container restart
+      # Set this for persistent encryption across restarts
+      # Example: TVCLIPBOARD_PRIVATE_KEY="a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456"
+      # - TVCLIPBOARD_PRIVATE_KEY=""
+
+    # Networks
+    networks:
+      - tvclipboard-net
+
+    # Health check
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3333/"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+
+networks:
+  tvclipboard-net:
+    driver: bridge

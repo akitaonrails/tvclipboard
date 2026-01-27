@@ -28,12 +28,12 @@ go build -o tvclipboard
 ./tvclipboard
 ```
 
-The server will automatically detect your local IP address and start on port 8080. You'll see output like:
+The server will automatically detect your local IP address and start on port 3333. You'll see output like:
 ```
-Server starting on port 8080
-Local access: http://localhost:8080
-Network access: http://192.168.1.100:8080
-QR code will use: http://192.168.1.100:8080
+Server starting on port 3333
+Local access: http://localhost:3333
+Network access: http://192.168.1.100:3333
+QR code will use: http://192.168.1.100:3333
 Open in browser and scan QR code with your phone
 ```
 

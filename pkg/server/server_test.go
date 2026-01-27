@@ -31,7 +31,7 @@ func TestClientURLMissingToken(t *testing.T) {
 	h := hub.NewHub()
 	go h.Run()
 
-	qrGen := qrcode.NewGenerator("localhost:8080", "http", 10*60*1e9) // 10 minutes
+	qrGen := qrcode.NewGenerator("localhost:3333", "http", 10*60*1e9) // 10 minutes
 
 	srv := NewServer(h, tm, qrGen, mockStaticFiles)
 
@@ -60,7 +60,7 @@ func TestWebSocketConnectionWithoutToken(t *testing.T) {
 	h := hub.NewHub()
 	go h.Run()
 
-	qrGen := qrcode.NewGenerator("localhost:8080", "http", 10*60*1e9)
+	qrGen := qrcode.NewGenerator("localhost:3333", "http", 10*60*1e9)
 
 	srv := NewServer(h, tm, qrGen, mockStaticFiles)
 
@@ -91,7 +91,7 @@ func TestWebSocketConnectionWithInvalidToken(t *testing.T) {
 	h := hub.NewHub()
 	go h.Run()
 	
-	qrGen := qrcode.NewGenerator("localhost:8080", "http", 10*60*1e9)
+	qrGen := qrcode.NewGenerator("localhost:3333", "http", 10*60*1e9)
 	
 	srv := NewServer(h, tm, qrGen, mockStaticFiles)
 
@@ -122,7 +122,7 @@ func TestWebSocketConnectionWithExpiredToken(t *testing.T) {
 	h := hub.NewHub()
 	go h.Run()
 	
-	qrGen := qrcode.NewGenerator("localhost:8080", "http", 60*1e9)
+	qrGen := qrcode.NewGenerator("localhost:3333", "http", 60*1e9)
 	
 	srv := NewServer(h, tm, qrGen, mockStaticFiles)
 
@@ -166,7 +166,7 @@ func TestWebSocketConnectionHostWithoutToken(t *testing.T) {
 	h := hub.NewHub()
 	go h.Run()
 	
-	qrGen := qrcode.NewGenerator("localhost:8080", "http", 10*60*1e9)
+	qrGen := qrcode.NewGenerator("localhost:3333", "http", 10*60*1e9)
 	
 	srv := NewServer(h, tm, qrGen, mockStaticFiles)
 
@@ -198,7 +198,7 @@ func TestWebSocketConnectionHostWithToken(t *testing.T) {
 	h := hub.NewHub()
 	go h.Run()
 	
-	qrGen := qrcode.NewGenerator("localhost:8080", "http", 10*60*1e9)
+	qrGen := qrcode.NewGenerator("localhost:3333", "http", 10*60*1e9)
 	
 	srv := NewServer(h, tm, qrGen, mockStaticFiles)
 
@@ -232,7 +232,7 @@ func TestQRCodeEndpoint(t *testing.T) {
 	h := hub.NewHub()
 	go h.Run()
 	
-	qrGen := qrcode.NewGenerator("localhost:8080", "http", 10*60*1e9)
+	qrGen := qrcode.NewGenerator("localhost:3333", "http", 10*60*1e9)
 	
 	srv := NewServer(h, tm, qrGen, mockStaticFiles)
 
