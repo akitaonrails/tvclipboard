@@ -178,8 +178,8 @@ func TestGetQRHostPublicURLWithPort(t *testing.T) {
 
 	cfg := Load()
 
-	if cfg.GetQRHost() != "example.io:3333" {
-		t.Errorf("Expected GetQRHost to return example.io:3333, got %s", cfg.GetQRHost())
+	if cfg.GetQRHost() != "example.io" {
+		t.Errorf("Expected GetQRHost to return example.io, got %s", cfg.GetQRHost())
 	}
 }
 

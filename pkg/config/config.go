@@ -126,7 +126,7 @@ func (c *Config) GetQRHost() string {
 	if c.PublicURL != "" {
 		parsed, err := url.Parse(c.PublicURL)
 		if err == nil {
-			return parsed.Host
+			return parsed.Hostname()
 		}
 		return c.PublicURL
 	}
