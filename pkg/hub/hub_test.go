@@ -31,7 +31,7 @@ func TestMessageBroadcast(t *testing.T) {
 	clientIDs := make([]string, 3)
 	registered := make(chan struct{}, 3)
 
-	for i := 0; i < 3; i++ {
+	for i := range 3 {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			conn, err := upgrader.Upgrade(w, r, nil)
 			if err != nil {
@@ -70,7 +70,7 @@ func TestMessageBroadcast(t *testing.T) {
 	}
 
 	// Wait for all clients to register
-	for i := 0; i < 3; i++ {
+	for range 3 {
 		<-registered
 	}
 	time.Sleep(100 * time.Millisecond)
@@ -112,7 +112,7 @@ func TestConcurrentMessages(t *testing.T) {
 	var mu sync.Mutex
 
 	// Create clients
-	for i := 0; i < numClients; i++ {
+	for range numClients {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			conn, err := upgrader.Upgrade(w, r, nil)
 			if err != nil {
@@ -153,7 +153,7 @@ func TestConcurrentMessages(t *testing.T) {
 
 	// Send messages concurrently
 	var wg sync.WaitGroup
-	for i := 0; i < numMessages; i++ {
+	for i := range numMessages {
 		wg.Add(1)
 		go func(msgNum int) {
 			defer wg.Done()
@@ -308,7 +308,7 @@ func TestRateLimiting(t *testing.T) {
 	time.Sleep(50 * time.Millisecond)
 
 	// Send more messages than rate limit allows from conn1
-	for i := 0; i < 5; i++ {
+	for i := range 5 {
 		msg := Message{
 			Type:    "text",
 			Content: fmt.Sprintf("Message %d", i),
@@ -420,7 +420,6 @@ func TestMessageSizeExceeded(t *testing.T) {
 
 	var mu sync.Mutex
 	errorReceived := false
-
 
 	// Check log output for size error messages
 	// We'll capture them by checking if the error was logged in ReadPump
@@ -559,4 +558,3 @@ func TestNewClient(t *testing.T) {
 	conn.Close()
 	time.Sleep(100 * time.Millisecond)
 }
-

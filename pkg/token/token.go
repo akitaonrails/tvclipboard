@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"fmt"
 	"log"
+	"maps"
 	"sync"
 	"time"
 )
@@ -23,11 +24,11 @@ type SessionToken struct {
 
 // TokenManager manages session tokens with in-memory storage and size limits
 type TokenManager struct {
-	tokens      map[string]int64 // token ID → timestamp
-	tokenOrder  []string          // FIFO order for rotation
-	timeout     time.Duration
-	maxTokens   int
-	mu          *sync.RWMutex
+	tokens     map[string]int64 // token ID → timestamp
+	tokenOrder []string         // FIFO order for rotation
+	timeout    time.Duration
+	maxTokens  int
+	mu         *sync.RWMutex
 }
 
 // base62 characters for generating short alphanumeric IDs
@@ -75,7 +76,7 @@ func (tm *TokenManager) GenerateToken() (string, error) {
 	var err error
 	maxAttempts := 100
 
-	for i := 0; i < maxAttempts; i++ {
+	for range maxAttempts {
 		tokenID, err = generateRandomID()
 		if err != nil {
 			return "", err
@@ -143,9 +144,7 @@ func (tm *TokenManager) GetTokens() map[string]int64 {
 	defer tm.mu.RUnlock()
 	// Return a copy
 	copy := make(map[string]int64)
-	for k, v := range tm.tokens {
-		copy[k] = v
-	}
+	maps.Copy(copy, tm.tokens)
 	return copy
 }
 

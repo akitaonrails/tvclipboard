@@ -139,21 +139,21 @@ func TestHTMLReplace(t *testing.T) {
 			html:     "Hello world",
 			old:      "world",
 			new:      "Go",
-			expected:  "Hello Go",
+			expected: "Hello Go",
 		},
 		{
 			name:     "no replacement needed",
 			html:     "Hello world",
 			old:      "missing",
 			new:      "Go",
-			expected:  "Hello world",
+			expected: "Hello world",
 		},
 		{
 			name:     "HTML tag replacement",
 			html:     `<div class="old">content</div>`,
 			old:      `<div class="old">`,
 			new:      `<div class="new">`,
-			expected:  `<div class="new">content</div>`,
+			expected: `<div class="new">content</div>`,
 		},
 	}
 
@@ -170,10 +170,10 @@ func TestHTMLReplace(t *testing.T) {
 // TestFindSubstring tests substring finding
 func TestFindSubstring(t *testing.T) {
 	tests := []struct {
-		name       string
-		s          string
-		substr     string
-		expected   int
+		name     string
+		s        string
+		substr   string
+		expected int
 	}{
 		{
 			name:     "found at start",

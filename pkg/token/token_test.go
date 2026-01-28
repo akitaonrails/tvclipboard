@@ -68,7 +68,7 @@ func TestTokenValidationInvalid(t *testing.T) {
 	invalidTokens := []string{
 		"",
 		"invalid",
-		"abc123xyz", // valid format but not stored
+		"abc123xyz",  // valid format but not stored
 		"1234567890", // too long
 	}
 
@@ -141,7 +141,7 @@ func TestTokenCleanup(t *testing.T) {
 
 	// Generate some tokens
 	var tokenIDs []string
-	for i := 0; i < 5; i++ {
+	for range 5 {
 		tokenID, err := tm.GenerateToken()
 		if err != nil {
 			t.Fatalf("Failed to generate token: %v", err)
@@ -159,7 +159,7 @@ func TestTokenCleanup(t *testing.T) {
 	}
 
 	// Generate tokens up to limit
-	for i := 0; i < MaxTokens; i++ {
+	for range MaxTokens {
 		tm.GenerateToken()
 	}
 
@@ -181,7 +181,7 @@ func TestTokenCleanup(t *testing.T) {
 // TestTokenManagerTimeout tests that token timeout is correctly set
 func TestTokenManagerTimeout(t *testing.T) {
 	tests := []struct {
-		minutes    int
+		minutes     int
 		wantTimeout time.Duration
 	}{
 		{5, 5 * time.Minute},
@@ -207,7 +207,7 @@ func TestMultipleValidTokens(t *testing.T) {
 	var tokenIDs []string
 
 	// Generate 10 tokens
-	for i := 0; i < 10; i++ {
+	for i := range 10 {
 		tokenID, err := tm.GenerateToken()
 		if err != nil {
 			t.Fatalf("Failed to generate token %d: %v", i, err)
@@ -240,7 +240,7 @@ func TestTokenUniqueness(t *testing.T) {
 
 	// Generate many tokens
 	tokens := make(map[string]bool)
-	for i := 0; i < 1000; i++ {
+	for i := range 1000 {
 		tokenID, err := tm.GenerateToken()
 		if err != nil {
 			t.Fatalf("Failed to generate token %d: %v", i, err)
@@ -264,7 +264,7 @@ func TestTokenLimit(t *testing.T) {
 
 	// Store some tokens manually (bypassing GenerateToken's limit check)
 	tm.mu.Lock()
-	for i := 0; i < MaxTokens + 5; i++ {
+	for i := range MaxTokens + 5 {
 		tokenID := "T" + string(rune('a'+i%26))
 		tm.tokens[tokenID] = time.Now().Unix()
 		tm.tokenOrder = append(tm.tokenOrder, tokenID)
@@ -290,7 +290,7 @@ func TestTokenLimit(t *testing.T) {
 // TestTimeout tests that Timeout returns the configured timeout
 func TestTimeout(t *testing.T) {
 	tests := []struct {
-		minutes    int
+		minutes     int
 		wantTimeout time.Duration
 	}{
 		{5, 5 * time.Minute},
@@ -340,7 +340,7 @@ func TestGetTokens(t *testing.T) {
 
 	// Generate some tokens
 	var expectedIDs []string
-	for i := 0; i < 5; i++ {
+	for range 5 {
 		tokenID, err := tm.GenerateToken()
 		if err != nil {
 			t.Fatalf("Failed to generate token: %v", err)
@@ -374,7 +374,7 @@ func TestTokenCount(t *testing.T) {
 	}
 
 	// Add some tokens
-	for i := 0; i < 5; i++ {
+	for range 5 {
 		tm.GenerateToken()
 	}
 
@@ -383,4 +383,3 @@ func TestTokenCount(t *testing.T) {
 		t.Errorf("Count should be 5, got %d", count)
 	}
 }
-

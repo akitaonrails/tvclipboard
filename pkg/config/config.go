@@ -15,7 +15,7 @@ import (
 
 // cliFlags holds parsed CLI flag values
 type cliFlags struct {
-	portFlag          string
+	portFlag           string
 	baseURLFlag        string
 	expiresFlag        int
 	keyFlag            string
@@ -28,15 +28,15 @@ var cfg = cliFlags{}
 
 // Config holds the application configuration
 type Config struct {
-	Port             string
-	PublicURL        string
-	SessionTimeout   time.Duration
-	PrivateKeyHex    string
-	LocalIP          string
-	showHelp         bool
-	MaxMessageSize   int64
-	RateLimitPerSec  int
-	AllowedOrigins   []string
+	Port            string
+	PublicURL       string
+	SessionTimeout  time.Duration
+	PrivateKeyHex   string
+	LocalIP         string
+	showHelp        bool
+	MaxMessageSize  int64
+	RateLimitPerSec int
+	AllowedOrigins  []string
 }
 
 // Load loads configuration from environment variables and CLI flags
@@ -109,15 +109,15 @@ func Load() *Config {
 	allowedOrigins := parseAllowedOrigins(publicURL, localIP)
 
 	config := &Config{
-		Port:             port,
-		PublicURL:        publicURL,
-		SessionTimeout:   time.Duration(timeoutMinutes) * time.Minute,
-		PrivateKeyHex:    privateKeyHex,
-		LocalIP:          localIP,
-		showHelp:         cfg.helpFlag,
-		MaxMessageSize:   int64(maxMessageSize) * 1024, // Convert KB to bytes
-		RateLimitPerSec:  rateLimit,
-		AllowedOrigins:   allowedOrigins,
+		Port:            port,
+		PublicURL:       publicURL,
+		SessionTimeout:  time.Duration(timeoutMinutes) * time.Minute,
+		PrivateKeyHex:   privateKeyHex,
+		LocalIP:         localIP,
+		showHelp:        cfg.helpFlag,
+		MaxMessageSize:  int64(maxMessageSize) * 1024, // Convert KB to bytes
+		RateLimitPerSec: rateLimit,
+		AllowedOrigins:  allowedOrigins,
 	}
 
 	return config

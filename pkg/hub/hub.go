@@ -13,7 +13,7 @@ import (
 
 // Client represents a WebSocket client connection
 type Client struct {
-	ID          string
+	ID           string
 	Conn         *websocket.Conn
 	Send         chan []byte
 	Hub          *Hub
@@ -25,15 +25,15 @@ type Client struct {
 
 // Hub manages all connected clients
 type Hub struct {
-	clients          map[string]*Client
-	hostID           string
-	broadcast        chan BroadcastMessage
-	Register         chan *Client
-	Unregister       chan *Client
-	stop             chan struct{}
-	mu               sync.RWMutex
-	maxMessageSize   int64
-	rateLimitPerSec  int
+	clients         map[string]*Client
+	hostID          string
+	broadcast       chan BroadcastMessage
+	Register        chan *Client
+	Unregister      chan *Client
+	stop            chan struct{}
+	mu              sync.RWMutex
+	maxMessageSize  int64
+	rateLimitPerSec int
 }
 
 // BroadcastMessage represents a message to broadcast to clients
@@ -53,14 +53,14 @@ type Message struct {
 // NewHub creates a new Hub
 func NewHub(maxMessageSize int64, rateLimitPerSec int) *Hub {
 	return &Hub{
-		clients:          make(map[string]*Client),
-		broadcast:        make(chan BroadcastMessage, 256),
-		Register:         make(chan *Client),
-		Unregister:       make(chan *Client),
-		stop:             make(chan struct{}),
-		mu:               sync.RWMutex{},
-		maxMessageSize:   maxMessageSize,
-		rateLimitPerSec:  rateLimitPerSec,
+		clients:         make(map[string]*Client),
+		broadcast:       make(chan BroadcastMessage, 256),
+		Register:        make(chan *Client),
+		Unregister:      make(chan *Client),
+		stop:            make(chan struct{}),
+		mu:              sync.RWMutex{},
+		maxMessageSize:  maxMessageSize,
+		rateLimitPerSec: rateLimitPerSec,
 	}
 }
 
@@ -289,8 +289,6 @@ func (h *Hub) SetHostID(id string) {
 	defer h.mu.Unlock()
 	h.hostID = id
 }
-
-
 
 // NewClient creates a new Client instance
 func NewClient(conn *websocket.Conn, hub *Hub, mobile bool) *Client {

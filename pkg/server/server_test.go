@@ -113,9 +113,9 @@ func TestWebSocketConnectionWithInvalidToken(t *testing.T) {
 	tm := token.NewTokenManager("", 10)
 	h := hub.NewHub(1024*1024, 10) // 1MB max, 10 msgs/sec
 	go h.Run()
-	
+
 	qrGen := qrcode.NewGenerator("localhost:3333", "http", 10*60*1e9)
-	
+
 	srv := NewServer(h, tm, qrGen, mockStaticFiles, []string{"http://localhost:*"})
 
 	// Simulate host exists
@@ -142,11 +142,11 @@ func TestWebSocketConnectionWithInvalidToken(t *testing.T) {
 // TestWebSocketConnectionWithExpiredToken tests that WebSocket rejects expired tokens
 func TestWebSocketConnectionWithExpiredToken(t *testing.T) {
 	tm := token.NewTokenManager("", 1) // 1 minute timeout
-	h := hub.NewHub(1024*1024, 10) // 1MB max, 10 msgs/sec
+	h := hub.NewHub(1024*1024, 10)     // 1MB max, 10 msgs/sec
 	go h.Run()
-	
+
 	qrGen := qrcode.NewGenerator("localhost:3333", "http", 60*1e9)
-	
+
 	srv := NewServer(h, tm, qrGen, mockStaticFiles, []string{"http://localhost:*"})
 
 	// Simulate host exists
@@ -187,9 +187,9 @@ func TestWebSocketConnectionHostWithoutToken(t *testing.T) {
 	tm := token.NewTokenManager("", 10)
 	h := hub.NewHub(1024*1024, 10) // 1MB max, 10 msgs/sec
 	go h.Run()
-	
+
 	qrGen := qrcode.NewGenerator("localhost:3333", "http", 10*60*1e9)
-	
+
 	srv := NewServer(h, tm, qrGen, mockStaticFiles, []string{"http://localhost:*"})
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -219,9 +219,9 @@ func TestWebSocketConnectionHostWithToken(t *testing.T) {
 	tm := token.NewTokenManager("", 10)
 	h := hub.NewHub(1024*1024, 10) // 1MB max, 10 msgs/sec
 	go h.Run()
-	
+
 	qrGen := qrcode.NewGenerator("localhost:3333", "http", 10*60*1e9)
-	
+
 	srv := NewServer(h, tm, qrGen, mockStaticFiles, []string{"http://localhost:*"})
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -253,9 +253,9 @@ func TestQRCodeEndpoint(t *testing.T) {
 	tm := token.NewTokenManager("", 10)
 	h := hub.NewHub(1024*1024, 10) // 1MB max, 10 msgs/sec
 	go h.Run()
-	
+
 	qrGen := qrcode.NewGenerator("localhost:3333", "http", 10*60*1e9)
-	
+
 	srv := NewServer(h, tm, qrGen, mockStaticFiles, []string{"http://localhost:*"})
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -345,76 +345,76 @@ func TestVersionPattern(t *testing.T) {
 // TestIsOriginAllowed tests origin validation with various scenarios
 func TestIsOriginAllowed(t *testing.T) {
 	tests := []struct {
-		name          string
-		origin        string
+		name           string
+		origin         string
 		allowedOrigins []string
-		wantAllowed   bool
+		wantAllowed    bool
 	}{
 		{
-			name:          "exact match",
-			origin:        "http://localhost:3333",
+			name:           "exact match",
+			origin:         "http://localhost:3333",
 			allowedOrigins: []string{"http://localhost:3333"},
-			wantAllowed:   true,
+			wantAllowed:    true,
 		},
 		{
-			name:          "wildcard match with port",
-			origin:        "http://localhost:3333",
+			name:           "wildcard match with port",
+			origin:         "http://localhost:3333",
 			allowedOrigins: []string{"http://localhost:*"},
-			wantAllowed:   true,
+			wantAllowed:    true,
 		},
 		{
-			name:          "wildcard match without port",
-			origin:        "http://localhost",
+			name:           "wildcard match without port",
+			origin:         "http://localhost",
 			allowedOrigins: []string{"http://localhost:*"},
-			wantAllowed:   true,
+			wantAllowed:    true,
 		},
 		{
-			name:          "wildcard match with colon suffix - exact match",
-			origin:        "http://localhost",
+			name:           "wildcard match with colon suffix - exact match",
+			origin:         "http://localhost",
 			allowedOrigins: []string{"http://localhost:*:"},
-			wantAllowed:   true,
+			wantAllowed:    true,
 		},
 		{
-			name:          "wildcard match with colon suffix - with port",
-			origin:        "http://localhost:3333",
+			name:           "wildcard match with colon suffix - with port",
+			origin:         "http://localhost:3333",
 			allowedOrigins: []string{"http://localhost:*:"},
-			wantAllowed:   true,
+			wantAllowed:    true,
 		},
 		{
-			name:          "no match - different origin",
-			origin:        "http://example.com:3333",
+			name:           "no match - different origin",
+			origin:         "http://example.com:3333",
 			allowedOrigins: []string{"http://localhost:*"},
-			wantAllowed:   false,
+			wantAllowed:    false,
 		},
 		{
-			name:          "no match - different protocol",
-			origin:        "https://localhost:3333",
+			name:           "no match - different protocol",
+			origin:         "https://localhost:3333",
 			allowedOrigins: []string{"http://localhost:*"},
-			wantAllowed:   false,
+			wantAllowed:    false,
 		},
 		{
-			name:          "multiple allowed origins - first matches",
-			origin:        "http://localhost:3333",
+			name:           "multiple allowed origins - first matches",
+			origin:         "http://localhost:3333",
 			allowedOrigins: []string{"http://localhost:*", "http://example.com:*"},
-			wantAllowed:   true,
+			wantAllowed:    true,
 		},
 		{
-			name:          "multiple allowed origins - second matches",
-			origin:        "http://example.com:3333",
+			name:           "multiple allowed origins - second matches",
+			origin:         "http://example.com:3333",
 			allowedOrigins: []string{"http://localhost:*", "http://example.com:*"},
-			wantAllowed:   true,
+			wantAllowed:    true,
 		},
 		{
-			name:          "multiple allowed origins - none match",
-			origin:        "http://other.com:3333",
+			name:           "multiple allowed origins - none match",
+			origin:         "http://other.com:3333",
 			allowedOrigins: []string{"http://localhost:*", "http://example.com:*"},
-			wantAllowed:   false,
+			wantAllowed:    false,
 		},
 		{
-			name:          "empty allowed origins - allow all",
-			origin:        "http://anyorigin.com:3333",
+			name:           "empty allowed origins - allow all",
+			origin:         "http://anyorigin.com:3333",
 			allowedOrigins: []string{},
-			wantAllowed:   true,
+			wantAllowed:    true,
 		},
 	}
 
@@ -560,5 +560,3 @@ func TestRegisterRoutes(t *testing.T) {
 	// Routes are registered to global http package, so we can't easily test them directly
 	// But we can verify that the function doesn't panic
 }
-
-

@@ -17,7 +17,7 @@ import (
 var upgrader = websocket.Upgrader{
 	CheckOrigin:     func(r *http.Request) bool { return true },
 	ReadBufferSize:  1024,
-	WriteBufferSize:  1024,
+	WriteBufferSize: 1024,
 }
 
 // isOriginAllowed checks if the given origin is in the allowed origins list
@@ -58,7 +58,7 @@ func isOriginAllowed(origin string, allowedOrigins []string) bool {
 func matchesWildcard(origin, pattern string) bool {
 	// Remove trailing colon from pattern if present (from patterns like "http://localhost:*")
 	pattern = strings.TrimSuffix(pattern, ":")
-	
+
 	// Simple case: origin starts with pattern and either ends with port or equals pattern without :
 	if len(origin) >= len(pattern) {
 		originPrefix := origin[:len(pattern)]
@@ -106,10 +106,10 @@ type Server struct {
 func NewServer(h *hub.Hub, tm *token.TokenManager, qrGen *qrcode.Generator, staticFiles fs.FS, allowedOrigins []string) *Server {
 	return &Server{
 		hub:            h,
-		tokenManager:    tm,
-		qrGenerator:     qrGen,
-		staticFiles:     staticFiles,
-		allowedOrigins:  allowedOrigins,
+		tokenManager:   tm,
+		qrGenerator:    qrGen,
+		staticFiles:    staticFiles,
+		allowedOrigins: allowedOrigins,
 		version:        time.Now().Format("20060102150405"),
 	}
 }
