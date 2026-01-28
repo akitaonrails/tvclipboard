@@ -189,6 +189,42 @@ button:active {
     color: white;
 }
 
+.close-btn {
+    background: #6b7280;
+    color: white;
+    flex: 0;
+    min-width: 80px;
+    font-size: 14px;
+    padding: 15px 20px;
+}
+
+.footer {
+    text-align: center;
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #e5e7eb;
+}
+
+.github-link {
+    display: inline-flex;
+    align-items: center;
+    text-decoration: none;
+    color: #666;
+    transition: color 0.2s;
+    padding: 8px 12px;
+    border-radius: 8px;
+}
+
+.github-link i {
+    font-size: 48px;
+}
+
+.github-link:hover {
+    color: #333;
+    background: #f3f4f6;
+}
+
+
 .received-section {
     display: none;
     padding: 20px;

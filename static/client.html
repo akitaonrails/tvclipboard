@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TV Clipboard - Client</title>
     <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 <body>
     <div class="container">
@@ -31,8 +32,15 @@
                 <button class="send-btn" id="sendBtn" onclick="sendText()" disabled>Send</button>
                 <button class="copy-btn" onclick="copyFromClipboard()" disabled>Paste</button>
                 <button class="clear-btn" onclick="clearInput()" disabled>Clear</button>
+                <button class="close-btn" onclick="closeTab()">✕ Close</button>
             </div>
         </div>
+
+        <footer class="footer">
+            <a href="https://github.com/akitaonrails/tvclipboard" target="_blank" rel="noopener noreferrer" class="github-link">
+                <i class="fab fa-github"></i>
+            </a>
+        </footer>
     </div>
 
     <script src="/static/js/common.js"></script>

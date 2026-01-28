@@ -49,6 +49,10 @@ function clearInput() {
     document.getElementById('input').value = '';
 }
 
+function closeTab() {
+    window.close();
+}
+
 function copyFromClipboard() {
     if (navigator.clipboard && navigator.clipboard.readText) {
         navigator.clipboard.readText()
@@ -304,6 +308,7 @@ function connect() {
     };
     window.copyFromClipboard = copyFromClipboard;
     window.clearInput = clearInput;
+    window.closeTab = closeTab;
 
     connect();
 })();
