@@ -33,8 +33,17 @@ func main() {
 		int(cfg.SessionTimeout.Minutes()),
 	)
 
+	// Determine host:port for QR code
+	// If GetQRHost already includes a port (from PublicURL), use it as-is
+	// Otherwise, append the listening port (for LocalIP case)
+	qrHost := cfg.GetQRHost()
+	if cfg.PublicURL == "" {
+		// Only add port when using LocalIP (no PublicURL set)
+		qrHost += ":" + cfg.Port
+	}
+
 	qrGen := qrcode.NewGenerator(
-		cfg.GetQRHost()+":"+cfg.Port,
+		qrHost,
 		cfg.GetQRScheme(),
 		cfg.SessionTimeout,
 	)

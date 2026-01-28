@@ -157,12 +157,13 @@ func getLocalIP() string {
 }
 
 // GetQRHost returns the host to use for QR codes
-// If PublicURL is set, uses that; otherwise uses LocalIP
+// If PublicURL is set, returns the full authority (host:port) from that URL
+// Otherwise returns LocalIP without port (caller should add Port)
 func (c *Config) GetQRHost() string {
 	if c.PublicURL != "" {
 		parsed, err := url.Parse(c.PublicURL)
 		if err == nil {
-			return parsed.Hostname()
+			return parsed.Host // Host includes hostname and port if specified
 		}
 		return c.PublicURL
 	}

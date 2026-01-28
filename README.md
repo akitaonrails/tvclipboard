@@ -80,6 +80,14 @@ Navigate to any of the URLs shown in the console output (localhost works fine fo
   - Browsers require HTTPS for automatic clipboard paste button
   - On `http://` (like local network), use long-press in textarea → "Paste"
   - Paste button works on `https://` or `localhost://`
+- **Encryption and HTTPS**:
+  - **Web Crypto API (AES-GCM encryption) is ONLY available in secure contexts**
+  - Secure contexts: `https://`, `localhost` (any port), or `file://` URLs
+  - When accessed via HTTP on LAN (e.g., `http://192.168.1.100:3333`), messages are sent **unencrypted**
+  - This is a browser security restriction that cannot be bypassed
+  - For encrypted messages in production, deploy with HTTPS (e.g., using a reverse proxy, ngrok, or self-signed certs)
+  - For local development, unencrypted LAN access is typically acceptable (trusted network)
+  - Check browser console: it will log "Web Crypto API available: false" in insecure contexts
 
 ## Architecture
 

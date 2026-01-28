@@ -166,6 +166,7 @@ func TestGetQRHostPublicURL(t *testing.T) {
 
 	cfg := Load()
 
+	// parsed.Host includes hostname, no port for standard HTTPS
 	if cfg.GetQRHost() != "example.io" {
 		t.Errorf("Expected GetQRHost to return example.io, got %s", cfg.GetQRHost())
 	}
@@ -178,8 +179,9 @@ func TestGetQRHostPublicURLWithPort(t *testing.T) {
 
 	cfg := Load()
 
-	if cfg.GetQRHost() != "example.io" {
-		t.Errorf("Expected GetQRHost to return example.io, got %s", cfg.GetQRHost())
+	// parsed.Host includes hostname:port when port is specified
+	if cfg.GetQRHost() != "example.io:3333" {
+		t.Errorf("Expected GetQRHost to return example.io:3333, got %s", cfg.GetQRHost())
 	}
 }
 
@@ -230,5 +232,31 @@ func TestPublicURLFromCLI(t *testing.T) {
 
 	if cfg.PublicURL != "https://example.com" {
 		t.Errorf("Expected PublicURL from CLI, got %s", cfg.PublicURL)
+	}
+}
+
+func TestGetQRHostPublicURLStandardPort(t *testing.T) {
+	flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ContinueOnError)
+	os.Setenv("TVCLIPBOARD_PUBLIC_URL", "http://example.com")
+	defer os.Unsetenv("TVCLIPBOARD_PUBLIC_URL")
+
+	cfg := Load()
+
+	// parsed.Host returns hostname without port for standard HTTP port
+	if cfg.GetQRHost() != "example.com" {
+		t.Errorf("Expected GetQRHost to return example.com, got %s", cfg.GetQRHost())
+	}
+}
+
+func TestGetQRHostPublicURLPort80(t *testing.T) {
+	flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ContinueOnError)
+	os.Setenv("TVCLIPBOARD_PUBLIC_URL", "http://example.com:80")
+	defer os.Unsetenv("TVCLIPBOARD_PUBLIC_URL")
+
+	cfg := Load()
+
+	// parsed.Host returns hostname:80 when port 80 is explicitly specified
+	if cfg.GetQRHost() != "example.com:80" {
+		t.Errorf("Expected GetQRHost to return example.com:80, got %s", cfg.GetQRHost())
 	}
 }
