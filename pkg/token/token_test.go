@@ -2,14 +2,13 @@ package token
 
 import (
 	"bytes"
+	"crypto/rand"
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
 	"strings"
 	"testing"
 	"time"
-
-	"github.com/google/uuid"
 )
 
 // TestTokenGeneration tests that tokens are generated correctly
@@ -27,13 +26,16 @@ func TestTokenGeneration(t *testing.T) {
 		t.Error("Encrypted token should not be empty")
 	}
 
-	// Check that token ID is a valid UUID
-	if _, err := uuid.Parse(token.ID); err != nil {
-		t.Errorf("Token ID should be a valid UUID: %v", err)
+	// Check that token ID is valid hex (24 characters = 12 bytes)
+	if len(token.ID) != 24 {
+		t.Errorf("Token ID should be 24 hex characters, got %d", len(token.ID))
+	}
+	if _, err := hex.DecodeString(token.ID); err != nil {
+		t.Errorf("Token ID should be valid hex: %v", err)
 	}
 
-	// Check that timestamp is recent
-	if time.Since(token.Timestamp) > 5*time.Second {
+	// Check that timestamp is recent (converted from Unix timestamp)
+	if time.Since(time.Unix(token.Timestamp, 0)) > 5*time.Second {
 		t.Error("Token timestamp should be recent")
 	}
 }
@@ -44,9 +46,17 @@ func TestTokenEncryptionDecryption(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to generate private key: %v", err)
 	}
+
+	// Generate 12 random bytes for ID
+	idBytes := make([]byte, 12)
+	if _, err := rand.Read(idBytes); err != nil {
+		t.Fatalf("Failed to generate token ID: %v", err)
+	}
+	tokenID := hex.EncodeToString(idBytes)
+
 	token := SessionToken{
-		ID:        uuid.New().String(),
-		Timestamp: time.Now(),
+		ID:        tokenID,
+		Timestamp: time.Now().Unix(),
 	}
 
 	// Encrypt the token
@@ -66,10 +76,9 @@ func TestTokenEncryptionDecryption(t *testing.T) {
 		t.Errorf("Token ID mismatch: got %s, want %s", decrypted.ID, token.ID)
 	}
 
-	// Check that timestamps are close (within 1 second)
-	diff := decrypted.Timestamp.Sub(token.Timestamp)
-	if diff < -time.Second || diff > time.Second {
-		t.Errorf("Timestamp mismatch: got %v, want %v (diff: %v)", decrypted.Timestamp, token.Timestamp, diff)
+	// Check that timestamps match (both are Unix timestamps)
+	if decrypted.Timestamp != token.Timestamp {
+		t.Errorf("Timestamp mismatch: got %d, want %d", decrypted.Timestamp, token.Timestamp)
 	}
 }
 
@@ -83,9 +92,17 @@ func TestTokenWithDifferentKey(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to generate private key: %v", err)
 	}
+
+	// Generate 12 random bytes for ID
+	idBytes := make([]byte, 12)
+	if _, err := rand.Read(idBytes); err != nil {
+		t.Fatalf("Failed to generate token ID: %v", err)
+	}
+	tokenID := hex.EncodeToString(idBytes)
+
 	token := SessionToken{
-		ID:        uuid.New().String(),
-		Timestamp: time.Now(),
+		ID:        tokenID,
+		Timestamp: time.Now().Unix(),
 	}
 
 	// Encrypt with key1
@@ -148,9 +165,13 @@ func TestTokenValidationExpired(t *testing.T) {
 	tm := NewTokenManager("", 1) // 1 minute timeout
 
 	// Create an expired token manually
+	idBytes := make([]byte, 12)
+	if _, err := rand.Read(idBytes); err != nil {
+		t.Fatalf("Failed to generate token ID: %v", err)
+	}
 	token := SessionToken{
-		ID:        uuid.New().String(),
-		Timestamp: time.Now().Add(-2 * time.Minute), // Expired
+		ID:        hex.EncodeToString(idBytes),
+		Timestamp: time.Now().Add(-2 * time.Minute).Unix(), // Expired
 	}
 
 	// Store the expired token
@@ -180,9 +201,13 @@ func TestTokenNotFound(t *testing.T) {
 	tm := NewTokenManager("", 10)
 
 	// Create a token but don't store it
+	idBytes := make([]byte, 12)
+	if _, err := rand.Read(idBytes); err != nil {
+		t.Fatalf("Failed to generate token ID: %v", err)
+	}
 	token := SessionToken{
-		ID:        uuid.New().String(),
-		Timestamp: time.Now(),
+		ID:        hex.EncodeToString(idBytes),
+		Timestamp: time.Now().Unix(),
 	}
 
 	// Encrypt the token
@@ -219,7 +244,7 @@ func TestTokenCleanup(t *testing.T) {
 	// Manually expire one token
 	tm.mu.Lock()
 	expiredToken := tm.tokens[tokenIDs[0]]
-	expiredToken.Timestamp = time.Now().Add(-2 * time.Minute)
+	expiredToken.Timestamp = time.Now().Add(-2 * time.Minute).Unix()
 	tm.tokens[tokenIDs[0]] = expiredToken
 	tm.mu.Unlock()
 
@@ -401,9 +426,13 @@ func TestMultipleValidTokens(t *testing.T) {
 
 // TestTokenJSONEncoding tests that tokens can be properly JSON encoded/decoded
 func TestTokenJSONEncoding(t *testing.T) {
+	idBytes := make([]byte, 12)
+	if _, err := rand.Read(idBytes); err != nil {
+		t.Fatalf("Failed to generate token ID: %v", err)
+	}
 	token := SessionToken{
-		ID:        uuid.New().String(),
-		Timestamp: time.Now(),
+		ID:        hex.EncodeToString(idBytes),
+		Timestamp: time.Now().Unix(),
 	}
 
 	// Encode to JSON
@@ -423,9 +452,8 @@ func TestTokenJSONEncoding(t *testing.T) {
 		t.Errorf("ID mismatch: got %s, want %s", decoded.ID, token.ID)
 	}
 
-	// Timestamps should be very close
-	diff := decoded.Timestamp.Sub(token.Timestamp)
-	if diff < -time.Second || diff > time.Second {
-		t.Errorf("Timestamp mismatch: got %v, want %v (diff: %v)", decoded.Timestamp, token.Timestamp, diff)
+	// Timestamps should match exactly (both are Unix timestamps)
+	if decoded.Timestamp != token.Timestamp {
+		t.Errorf("Timestamp mismatch: got %d, want %d", decoded.Timestamp, token.Timestamp)
 	}
 }

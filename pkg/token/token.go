@@ -12,14 +12,12 @@ import (
 	"log"
 	"sync"
 	"time"
-
-	"github.com/google/uuid"
 )
 
 // SessionToken represents a session token with ID and timestamp
 type SessionToken struct {
 	ID        string    `json:"id"`
-	Timestamp time.Time `json:"timestamp"`
+	Timestamp int64     `json:"timestamp"`
 }
 
 // TokenManager manages session tokens with encryption and expiration
@@ -149,9 +147,16 @@ func (tm *TokenManager) GenerateToken() (string, SessionToken, error) {
 	tm.mu.Lock()
 	defer tm.mu.Unlock()
 
+	// Generate 12 random bytes for ID (96 bits of entropy)
+	idBytes := make([]byte, 12)
+	if _, err := io.ReadFull(rand.Reader, idBytes); err != nil {
+		return "", SessionToken{}, fmt.Errorf("failed to generate token ID: %w", err)
+	}
+	tokenID := hex.EncodeToString(idBytes)
+
 	token := SessionToken{
-		ID:        uuid.New().String(),
-		Timestamp: time.Now(),
+		ID:        tokenID,
+		Timestamp: time.Now().Unix(),
 	}
 
 	tm.tokens[token.ID] = token
@@ -179,7 +184,7 @@ func (tm *TokenManager) ValidateToken(encrypted string) (SessionToken, error) {
 		return SessionToken{}, fmt.Errorf("token not found")
 	}
 
-	if time.Since(storedToken.Timestamp) > tm.timeout {
+	if time.Since(time.Unix(storedToken.Timestamp, 0)) > tm.timeout {
 		return SessionToken{}, fmt.Errorf("token expired")
 	}
 
@@ -213,7 +218,7 @@ func (tm *TokenManager) cleanupExpiredTokens() {
 	defer tm.mu.Unlock()
 
 	for id, token := range tm.tokens {
-		if time.Since(token.Timestamp) > tm.timeout {
+		if time.Since(time.Unix(token.Timestamp, 0)) > tm.timeout {
 			delete(tm.tokens, id)
 			log.Printf("Cleaned up expired token: %s", id)
 		}

@@ -1,6 +1,8 @@
 package server
 
 import (
+	"crypto/rand"
+	"encoding/hex"
 	"io"
 	"io/fs"
 	"net/http"
@@ -10,7 +12,6 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
-	"github.com/google/uuid"
 	"tvclipboard/pkg/hub"
 	"tvclipboard/pkg/qrcode"
 	"tvclipboard/pkg/token"
@@ -154,9 +155,13 @@ func TestWebSocketConnectionWithExpiredToken(t *testing.T) {
 	h.SetHostID("test-host")
 
 	// Create and store an expired token
+	idBytes := make([]byte, 12)
+	if _, err := io.ReadFull(rand.Reader, idBytes); err != nil {
+		t.Fatalf("Failed to generate token ID: %v", err)
+	}
 	sessionToken := token.SessionToken{
-		ID:        uuid.New().String(),
-		Timestamp: time.Now().Add(-2 * time.Minute),
+		ID:        hex.EncodeToString(idBytes),
+		Timestamp: time.Now().Add(-2 * time.Minute).Unix(),
 	}
 	tm.StoreToken(sessionToken)
 
