@@ -1,3 +1,5 @@
+/* global t */
+/* exported encryptMessage, decryptMessage, getWebSocketURL, getPublicURL, formatTime */
 // Common utilities and encryption
 
 let encryptionKey = null;

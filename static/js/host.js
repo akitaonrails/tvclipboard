@@ -1,3 +1,4 @@
+/* global t, formatTime, getWebSocketURL, getPublicURL, decryptMessage */
 // Host-specific functionality
 (function() {
     'use strict';
@@ -8,7 +9,7 @@
     let timerInterval;
     const sessionTimeout = 600;
 
-    async function showReceivedContent(encryptedContent, from) {
+    async function showReceivedContent(encryptedContent) {
     const section = document.getElementById('received-section');
     const contentDiv = document.getElementById('received-content');
     const timestamp = document.getElementById('timestamp');
@@ -228,7 +229,7 @@ function connect() {
         if (message.type === 'role') {
             handleRoleAssignment(message.role);
         } else if (message.type === 'text' && message.content) {
-            showReceivedContent(message.content, message.from);
+            showReceivedContent(message.content);
         }
     };
 }

@@ -1,3 +1,4 @@
+/* global t, formatTime, encryptMessage, getWebSocketURL */
 // Client-specific functionality
 (function() {
     'use strict';
@@ -7,7 +8,7 @@
     let connectionFailed = false;
     let timerInterval;
     const appDiv = document.querySelector('.container');
-    const sessionTimeout = appDiv ? parseInt(appDiv.getAttribute('data-session-timeout') || '600') : 600;
+    const sessionTimeout = appDiv ? parseInt(appDiv.getAttribute('data-session-timeout') || '600', 10) : 600;
 
     async function sendText() {
     const input = document.getElementById('input');
@@ -270,8 +271,6 @@ function connect() {
         disableAll();
 
         const status = document.getElementById('status');
-        const errorEl = document.getElementById('error');
-
         if (status) {
             status.style.display = 'none';
         }

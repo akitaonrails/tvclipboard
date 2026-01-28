@@ -1,3 +1,4 @@
+/* exported loadTranslations, t, formatString */
 // i18n helper functions
 
 let translations = {};

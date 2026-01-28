@@ -20,6 +20,7 @@ A simple peer-to-peer clipboard sharing application written in Go. Share text be
 - 🛡️ **Rate Limiting**: Configurable message rate limits prevent abuse (default: 4 msg/sec)
 - 📏 **Message Size Limits**: Configurable maximum message size prevents spam (default: 1KB)
 - 🌐 **CORS Protection**: WebSocket origin validation using public URL config
+- 🌍 **Internationalization**: Multi-language support (English and Brazilian Portuguese)
 
 ## Usage
 
@@ -98,12 +99,18 @@ The codebase is organized into focused, maintainable packages following Go best 
 ```
 tvclipboard/
 ├── main.go           # Application entry point (wires packages together)
+├── i18n/            # Internationalization (translations, language loading)
 └── pkg/
     ├── token/         # Session management and encryption
     ├── hub/           # WebSocket hub and client management
     ├── qrcode/        # QR code generation
     ├── server/         # HTTP handlers and routing
     └── config/        # Configuration and environment variables
+└── static/
+    ├── js/            # Frontend JavaScript (i18n, common, host, client)
+    ├── host.html      # Host page UI
+    ├── client.html    # Client page UI
+    └── img/          # Static images
 ```
 
 ### Package Responsibilities
@@ -111,25 +118,186 @@ tvclipboard/
 - **pkg/token**: Session token generation, AES-GCM encryption, validation, cleanup
 - **pkg/hub**: WebSocket connection management, message broadcasting, role assignment
 - **pkg/qrcode**: QR code generation, HTML injection for session timeout
-- **pkg/server**: HTTP route handlers, WebSocket upgrades, static file serving
-- **pkg/config**: CLI argument parsing, environment variable parsing, IP detection, startup logging
+- **pkg/server**: HTTP route handlers, WebSocket upgrades, static file serving, i18n injection
+- **pkg/config**: CLI argument parsing, environment variable parsing, IP detection, startup logging, language selection
+- **i18n**: Translation loading (YAML), server-side i18n management, JSON injection
+
+### Frontend Architecture
+
+- **static/js/i18n.js**: Translation lookup, placeholder substitution, DOM translation application
+- **static/js/common.js**: Shared utilities (WebSocket URLs, formatting, encryption)
+- **static/js/host.js**: Host-specific logic (QR code, message reception, reveal toggle)
+- **static/js/client.js**: Client-specific logic (message sending, session management)
 
 ## Testing
 
-TV Clipboard includes a comprehensive test suite covering all major functionality:
+TV Clipboard includes a comprehensive test suite covering both Go backend and JavaScript frontend:
 
 ### Running Tests
 
 ```bash
-# Run all tests
+# Run all Go tests
 go test ./... -v
 
-# Run tests with coverage
+# Run Go tests with coverage
 go test ./... -cover
 
-# Run specific test
+# Run specific Go test
 go test ./pkg/token -v -run TestTokenGeneration
+
+# Run JavaScript tests
+npm test
+
+# Run all tests (Go and JavaScript)
+go test ./... && npm test
 ```
+
+### Go Test Coverage
+
+The Go test suite includes 62 tests covering:
+
+**pkg/config (6 tests)**
+
+- Default configuration loading
+- Environment variable configuration
+- CLI argument configuration
+- CLI flags override environment variables
+- Invalid/zero/negative timeout handling
+
+**pkg/token (17 tests)**
+
+- Token generation with valid format
+- Token encryption/decryption with AES-GCM
+- Token validation (valid, invalid, expired, not found)
+- Token cleanup of expired sessions
+- Private key generation from hex string or random
+- Token timeout configuration
+- Multiple concurrent tokens
+- Token JSON encoding/decoding
+
+**pkg/hub (12 tests)**
+
+- Message broadcasting to all clients except sender
+- Concurrent message handling
+- Client connection and reconnection
+- Long message handling (10KB)
+- Message type validation (text, role)
+- Message size limits (up to 100KB)
+- Empty messages
+- Messages with quotes and special characters
+- Multiline messages
+- Encryption compatibility with various content types
+
+**pkg/qrcode (5 tests)**
+
+- QR code endpoint returns valid PNG format
+- QR code URL contains proper token parameter
+- QR code generator configuration
+- Session timeout HTML injection
+- HTML replacement utilities
+
+**pkg/server (9 tests)**
+
+- Host connection without token succeeds
+- Host connection with token is rejected
+- Client connection without token is rejected when host exists
+- Client connection with invalid/expired token is rejected
+- QR code endpoint generation
+- Client URL handling
+- Cache busting version injection
+- Version format validation (YYYYMMDDHHMMSS)
+
+### JavaScript Test Coverage
+
+The JavaScript test suite includes 57 headless tests covering:
+
+**i18n (18 tests)**
+
+- Translation lookup with fallback
+- Placeholder substitution (single, multiple, repeated)
+- Section-based and section-less keys
+- Missing keys/sections handling
+- Null translations and null/undefined values
+- Numbers and special characters in params
+- Empty strings and params objects
+
+**common (4 tests)**
+
+- WebSocket URL generation (http/https, custom ports)
+- Public URL retrieval
+- Time formatting (seconds to MM:SS)
+- Edge cases (hour boundaries, single digits)
+
+**websocket (35 tests)**
+
+- Message structure and serialization
+- Role assignment (host/client)
+- WebSocket states (CONNECTING, OPEN, CLOSING, CLOSED)
+- Error codes (1000, 1006, 4000+)
+- Connection state transitions
+- Session expiration and connection failure tracking
+- Content validation (empty, whitespace-only)
+- Content obfuscation and reveal toggle
+- Timer logic (decrement, warning thresholds)
+- JSON handling (Unicode, special chars, empty, very long)
+- Complex message workflow simulation
+- URL with token parameter
+- Reconnection delay
+- Message type validation
+
+### Test Approach
+
+**Go Tests**: Unit tests covering all business logic, including concurrency, error handling, and edge cases.
+
+**JavaScript Tests**: Headless tests using Node.js built-in test runner. Tests public functions and workflow logic without requiring browser APIs or DOM manipulation. This keeps tests fast and simple while covering critical functionality.
+
+### Code Quality Tools
+
+#### Linting
+
+```bash
+# Run Go linter (requires golangci-lint)
+golangci-lint run
+
+# Run JavaScript linter
+npm run lint
+
+# Run both linters
+golangci-lint run && npm run lint
+```
+
+**Go Linting**: golangci-lint is configured in `.golangci.yml` to check for code quality issues, potential bugs, and style inconsistencies.
+
+**JavaScript Linting**: ESLint is configured in `eslint.config.js` to catch bugs and logic errors without enforcing style preferences. Rules focus on:
+- Possible errors (no-constant-condition, no-dupe-keys, no-unsafe-finally, etc.)
+- Best practices (eqeqeq, no-eval, no-with, radix, etc.)
+- Variables (no-undef, no-unused-vars, no-redeclare, etc.)
+
+No formatting or whitespace rules are enforced - only actual bugs and logic errors.
+
+#### Lines of Code
+
+```bash
+# Count Go code
+./loc.sh
+
+# Count JavaScript code
+./loc-js.sh
+
+# Show both
+./loc.sh && echo "---" && ./loc-js.sh
+```
+
+LOC counters show:
+- Total lines of code
+- Production vs test code breakdown
+- Test ratio (test lines : production lines)
+- Largest files by line count
+
+**Current stats**:
+- Go: 3,493 lines (1,431 production, 2,062 tests, 1.44:1 ratio)
+- JavaScript: 1,360 lines (787 production, 573 tests, 0.73:1 ratio)
+- Total: 4,853 lines (2,218 production, 2,635 tests, 1.19:1 ratio)
 
 ### Test Coverage
 
@@ -190,26 +358,55 @@ The test suite includes 62 tests covering:
 
 Current test coverage focuses on:
 
+**Go Backend**:
 - Session token generation and validation
 - WebSocket connection lifecycle
 - Message serialization/deserialization
 - Token-based authentication
 - QR code generation
+- HTTP route handlers and static file serving
+- I18n translation loading and injection
 
-Note: Client-side encryption (using Web Crypto API in JavaScript) is tested through integration tests that verify complete message flow between clients and host.
+**JavaScript Frontend**:
+- Translation lookup and placeholder substitution
+- WebSocket URL generation
+- Time formatting
+- Message structure validation
+- Workflow state management (connection, session, expiration)
+- JSON serialization/deserialization
+- Content validation and obfuscation
+
+**Not Covered** (by design):
+- Client-side Web Crypto API (browser-vendor tested)
+- DOM manipulation (requires JSDOM, adds complexity)
+- Clipboard API (browser-only APIs)
+- WebSocket network connections (requires browser)
+
+Note: Client-side encryption (using Web Crypto API in JavaScript) is tested through integration tests that verify complete message flow between clients and host. Browser APIs are tested by browser vendors, so we focus on business logic and workflow testing.
 
 The main.go file is minimal (~47 lines) and only wires the packages together. All business logic is encapsulated in focused packages for maintainability and testability.
 
 ## Requirements
 
 - Go 1.16 or higher (for building)
+- Node.js 18+ (for running JavaScript tests)
 - Modern web browser with JavaScript support
 
 ## Dependencies
 
+### Go Dependencies
+
 - github.com/gorilla/websocket
 - github.com/google/uuid
 - github.com/skip2/go-qrcode
+- gopkg.in/yaml.v3 (for i18n translation files)
+
+### JavaScript Dependencies (dev only)
+
+- eslint - JavaScript linter for catching bugs and logic errors
+- globals - Browser globals for ESLint configuration
+
+JavaScript dependencies are only used for testing and linting during development. The production build is a single Go binary with embedded static files.
 
 ## Security
 
