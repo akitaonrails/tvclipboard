@@ -287,42 +287,6 @@ func TestTokenLimit(t *testing.T) {
 	}
 }
 
-// TestGeneratePrivateKey is a no-op test for compatibility
-func TestGeneratePrivateKey(t *testing.T) {
-	key, err := GeneratePrivateKey()
-	if err != nil {
-		t.Fatalf("Failed to generate key: %v", err)
-	}
-	if len(key) != 7 { // Kept for compatibility
-		t.Errorf("Key length should be 7, got %d", len(key))
-	}
-}
-
-// TestEncryptDecryptToken are no-op tests for compatibility
-func TestEncryptToken(t *testing.T) {
-	key, _ := GeneratePrivateKey()
-
-	encrypted, err := EncryptToken(SessionToken{ID: "test123", Timestamp: time.Now().Unix()}, key)
-	if err != nil {
-		t.Fatalf("Failed to encrypt: %v", err)
-	}
-	if encrypted != "test123" {
-		t.Error("Encrypted should equal token ID (no-op for compatibility)")
-	}
-}
-
-func TestDecryptToken(t *testing.T) {
-	key, _ := GeneratePrivateKey()
-
-	decrypted, err := DecryptToken("test123", key)
-	if err != nil {
-		t.Fatalf("Failed to decrypt: %v", err)
-	}
-	if decrypted.ID != "test123" {
-		t.Error("Decrypted should match input (no-op for compatibility)")
-	}
-}
-
 // TestTimeout tests that Timeout returns the configured timeout
 func TestTimeout(t *testing.T) {
 	tests := []struct {

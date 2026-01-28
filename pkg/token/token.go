@@ -155,19 +155,3 @@ func (tm *TokenManager) TokenCount() int {
 	defer tm.mu.RUnlock()
 	return len(tm.tokens)
 }
-
-// Exports for testing compatibility
-func GeneratePrivateKey() ([]byte, error) {
-	// No longer used - kept for test compatibility
-	return []byte{0, 0, 0, 0, 0, 0, 0}, nil
-}
-
-func EncryptToken(token SessionToken, privateKey []byte) (string, error) {
-	// No longer used - kept for test compatibility
-	return token.ID, nil
-}
-
-func DecryptToken(encrypted string, privateKey []byte) (SessionToken, error) {
-	// No longer used - kept for test compatibility
-	return SessionToken{ID: encrypted, Timestamp: time.Now().Unix()}, nil
-}

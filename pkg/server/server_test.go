@@ -1,8 +1,6 @@
 package server
 
 import (
-	"crypto/rand"
-	"encoding/hex"
 	"io"
 	"io/fs"
 	"net/http"
@@ -154,19 +152,17 @@ func TestWebSocketConnectionWithExpiredToken(t *testing.T) {
 	// Simulate host exists
 	h.SetHostID("test-host")
 
-	// Create and store an expired token
-	idBytes := make([]byte, 12)
-	if _, err := io.ReadFull(rand.Reader, idBytes); err != nil {
-		t.Fatalf("Failed to generate token ID: %v", err)
+	// Generate a valid token and make it expired
+	expiredTokenID, err := tm.GenerateToken()
+	if err != nil {
+		t.Fatalf("Failed to generate token: %v", err)
 	}
-	sessionToken := token.SessionToken{
-		ID:        hex.EncodeToString(idBytes),
-		Timestamp: time.Now().Add(-2 * time.Minute).Unix(),
-	}
-	tm.StoreToken(sessionToken)
 
-	// Use the expired token ID directly
-	expiredTokenID := sessionToken.ID
+	// Manually expire the token
+	tm.StoreToken(token.SessionToken{
+		ID:        expiredTokenID,
+		Timestamp: time.Now().Add(-2 * time.Minute).Unix(),
+	})
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		srv.handleWebSocket(w, r)
@@ -175,7 +171,7 @@ func TestWebSocketConnectionWithExpiredToken(t *testing.T) {
 
 	// Try to connect with expired token
 	wsURL := "ws" + strings.TrimPrefix(server.URL, "http") + "/ws?token=" + expiredTokenID
-	_, _, err := websocket.DefaultDialer.Dial(wsURL, nil)
+	_, _, err = websocket.DefaultDialer.Dial(wsURL, nil)
 	if err == nil {
 		t.Error("WebSocket connection with expired token should fail")
 	}
