@@ -216,3 +216,38 @@ func TestFindSubstring(t *testing.T) {
 		})
 	}
 }
+
+// TestServeQRCodeDirectly tests ServeQRCode function directly
+func TestServeQRCodeDirectly(t *testing.T) {
+	g := NewGenerator("localhost:3333", "http", 10*time.Minute)
+
+	// Create test response recorder
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest("GET", "/qrcode.png?token=test-token-123", nil)
+
+	// Call ServeQRCode directly
+	g.ServeQRCode(w, r, "test-token-123")
+
+	// Check response
+	if w.Code != http.StatusOK {
+		t.Errorf("Expected status 200, got %d", w.Code)
+	}
+
+	// Check content type
+	contentType := w.Header().Get("Content-Type")
+	if contentType != "image/png" {
+		t.Errorf("Expected content-type image/png, got %s", contentType)
+	}
+
+	// Check that response is a PNG
+	body := w.Body.Bytes()
+	if len(body) < 8 {
+		t.Error("Response should be at least 8 bytes (PNG header)")
+	}
+
+	// PNG header
+	expectedHeader := []byte{0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A}
+	if !bytes.HasPrefix(body, expectedHeader) {
+		t.Error("Response should be a valid PNG file")
+	}
+}

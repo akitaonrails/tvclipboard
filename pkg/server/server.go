@@ -31,10 +31,20 @@ func isOriginAllowed(origin string, allowedOrigins []string) bool {
 			return true
 		}
 		// Check for wildcard at the end
+		// Handle both "*" and "*:" patterns
 		if len(allowed) > 0 && allowed[len(allowed)-1] == '*' {
-			prefix := allowed[:len(allowed)-1]
+			prefix := strings.TrimSuffix(allowed[:len(allowed)-1], ":")
 			// Remove port from origin when checking against wildcard prefix
 			// e.g., if allowed is "http://localhost:*" and origin is "http://localhost:3333",
+			// extract "http://localhost" from both for comparison
+			if matchesWildcard(origin, prefix) {
+				return true
+			}
+		}
+		// Check for "*:" pattern explicitly (when last char is ':')
+		if len(allowed) > 1 && strings.HasSuffix(allowed, "*:") {
+			prefix := allowed[:len(allowed)-2]
+			// e.g., if allowed is "http://localhost:*:" and origin is "http://localhost:3333",
 			// extract "http://localhost" from both for comparison
 			if matchesWildcard(origin, prefix) {
 				return true

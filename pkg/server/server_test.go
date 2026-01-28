@@ -345,3 +345,224 @@ func TestVersionPattern(t *testing.T) {
 		}
 	}
 }
+
+// TestIsOriginAllowed tests origin validation with various scenarios
+func TestIsOriginAllowed(t *testing.T) {
+	tests := []struct {
+		name          string
+		origin        string
+		allowedOrigins []string
+		wantAllowed   bool
+	}{
+		{
+			name:          "exact match",
+			origin:        "http://localhost:3333",
+			allowedOrigins: []string{"http://localhost:3333"},
+			wantAllowed:   true,
+		},
+		{
+			name:          "wildcard match with port",
+			origin:        "http://localhost:3333",
+			allowedOrigins: []string{"http://localhost:*"},
+			wantAllowed:   true,
+		},
+		{
+			name:          "wildcard match without port",
+			origin:        "http://localhost",
+			allowedOrigins: []string{"http://localhost:*"},
+			wantAllowed:   true,
+		},
+		{
+			name:          "wildcard match with colon suffix - exact match",
+			origin:        "http://localhost",
+			allowedOrigins: []string{"http://localhost:*:"},
+			wantAllowed:   true,
+		},
+		{
+			name:          "wildcard match with colon suffix - with port",
+			origin:        "http://localhost:3333",
+			allowedOrigins: []string{"http://localhost:*:"},
+			wantAllowed:   true,
+		},
+		{
+			name:          "no match - different origin",
+			origin:        "http://example.com:3333",
+			allowedOrigins: []string{"http://localhost:*"},
+			wantAllowed:   false,
+		},
+		{
+			name:          "no match - different protocol",
+			origin:        "https://localhost:3333",
+			allowedOrigins: []string{"http://localhost:*"},
+			wantAllowed:   false,
+		},
+		{
+			name:          "multiple allowed origins - first matches",
+			origin:        "http://localhost:3333",
+			allowedOrigins: []string{"http://localhost:*", "http://example.com:*"},
+			wantAllowed:   true,
+		},
+		{
+			name:          "multiple allowed origins - second matches",
+			origin:        "http://example.com:3333",
+			allowedOrigins: []string{"http://localhost:*", "http://example.com:*"},
+			wantAllowed:   true,
+		},
+		{
+			name:          "multiple allowed origins - none match",
+			origin:        "http://other.com:3333",
+			allowedOrigins: []string{"http://localhost:*", "http://example.com:*"},
+			wantAllowed:   false,
+		},
+		{
+			name:          "empty allowed origins - allow all",
+			origin:        "http://anyorigin.com:3333",
+			allowedOrigins: []string{},
+			wantAllowed:   true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := isOriginAllowed(tt.origin, tt.allowedOrigins)
+			if got != tt.wantAllowed {
+				t.Errorf("isOriginAllowed(%q, %v) = %v, want %v",
+					tt.origin, tt.allowedOrigins, got, tt.wantAllowed)
+			}
+		})
+	}
+}
+
+// TestMatchesWildcard tests wildcard pattern matching edge cases
+func TestMatchesWildcard(t *testing.T) {
+	tests := []struct {
+		name    string
+		origin  string
+		pattern string
+		want    bool
+	}{
+		{
+			name:    "exact match with port",
+			origin:  "http://localhost:3333",
+			pattern: "http://localhost:3333",
+			want:    true,
+		},
+		{
+			name:    "exact match without port",
+			origin:  "http://localhost",
+			pattern: "http://localhost",
+			want:    true,
+		},
+		{
+			name:    "different origin prefix",
+			origin:  "http://example.com:3333",
+			pattern: "http://localhost:*",
+			want:    false,
+		},
+		{
+			name:    "different protocol",
+			origin:  "https://localhost:3333",
+			pattern: "http://localhost:*",
+			want:    false,
+		},
+		{
+			name:    "origin shorter than pattern",
+			origin:  "http://localhost",
+			pattern: "http://localhost:*extra",
+			want:    false,
+		},
+		{
+			name:    "path in origin",
+			origin:  "http://localhost:3333/path",
+			pattern: "http://localhost:*",
+			want:    false,
+		},
+		{
+			name:    "empty origin",
+			origin:  "",
+			pattern: "http://localhost:*",
+			want:    false,
+		},
+		{
+			name:    "empty pattern",
+			origin:  "http://localhost:3333",
+			pattern: "",
+			want:    false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := matchesWildcard(tt.origin, tt.pattern)
+			if got != tt.want {
+				t.Errorf("matchesWildcard(%q, %q) = %v, want %v",
+					tt.origin, tt.pattern, got, tt.want)
+			}
+		})
+	}
+}
+
+// TestNewServer tests that NewServer initializes all fields correctly
+func TestNewServer(t *testing.T) {
+	h := hub.NewHub(1024*1024, 10)
+	go h.Run()
+
+	tm := token.NewTokenManager("", 10)
+	qrGen := qrcode.NewGenerator("localhost:3333", "http", 10*60*1e9)
+
+	srv := NewServer(h, tm, qrGen, mockStaticFiles, []string{"http://localhost:*"})
+
+	// Verify all fields are set
+	if srv.hub != h {
+		t.Error("Hub should be set")
+	}
+	if srv.tokenManager != tm {
+		t.Error("TokenManager should be set")
+	}
+	if srv.qrGenerator != qrGen {
+		t.Error("QRGenerator should be set")
+	}
+	if srv.staticFiles != mockStaticFiles {
+		t.Error("StaticFiles should be set")
+	}
+	if len(srv.allowedOrigins) != 1 {
+		t.Error("AllowedOrigins should be set")
+	}
+	if srv.version == "" {
+		t.Error("Version should be set")
+	}
+}
+
+// TestShutdown tests that Shutdown is a no-op (should not panic)
+func TestShutdown(t *testing.T) {
+	h := hub.NewHub(1024*1024, 10)
+	go h.Run()
+
+	tm := token.NewTokenManager("", 10)
+	qrGen := qrcode.NewGenerator("localhost:3333", "http", 10*60*1e9)
+
+	srv := NewServer(h, tm, qrGen, mockStaticFiles, []string{"http://localhost:*"})
+
+	// Should not panic
+	srv.Shutdown()
+	srv.Shutdown() // Should be idempotent
+}
+
+// TestRegisterRoutes tests that routes are registered correctly
+func TestRegisterRoutes(t *testing.T) {
+	h := hub.NewHub(1024*1024, 10)
+	go h.Run()
+
+	tm := token.NewTokenManager("", 10)
+	qrGen := qrcode.NewGenerator("localhost:3333", "http", 10*60*1e9)
+
+	srv := NewServer(h, tm, qrGen, mockStaticFiles, []string{"http://localhost:*"})
+
+	// Register routes
+	srv.RegisterRoutes()
+
+	// Routes are registered to global http package, so we can't easily test them directly
+	// But we can verify that the function doesn't panic
+}
+
+

@@ -322,3 +322,101 @@ func TestDecryptToken(t *testing.T) {
 		t.Error("Decrypted should match input (no-op for compatibility)")
 	}
 }
+
+// TestTimeout tests that Timeout returns the configured timeout
+func TestTimeout(t *testing.T) {
+	tests := []struct {
+		minutes    int
+		wantTimeout time.Duration
+	}{
+		{5, 5 * time.Minute},
+		{10, 10 * time.Minute},
+		{0, 10 * time.Minute},  // Default
+		{-5, 10 * time.Minute}, // Default for negative
+	}
+
+	for _, tt := range tests {
+		tm := NewTokenManager("", tt.minutes)
+		got := tm.Timeout()
+		if got != tt.wantTimeout {
+			t.Errorf("Timeout() = %v, want %v", got, tt.wantTimeout)
+		}
+	}
+}
+
+// TestStoreToken tests direct token storage
+func TestStoreToken(t *testing.T) {
+	tm := NewTokenManager("", 10)
+
+	// Create a token manually
+	token := SessionToken{
+		ID:        "testtoken123",
+		Timestamp: time.Now().Unix(),
+	}
+
+	// Store it
+	tm.StoreToken(token)
+
+	// Verify it's in the map
+	tm.mu.RLock()
+	stored, exists := tm.tokens[token.ID]
+	tm.mu.RUnlock()
+
+	if !exists {
+		t.Error("Token should be stored")
+	}
+	if stored != token.Timestamp {
+		t.Error("Token timestamp should match")
+	}
+}
+
+// TestGetTokens tests retrieving all tokens
+func TestGetTokens(t *testing.T) {
+	tm := NewTokenManager("", 10)
+
+	// Generate some tokens
+	var expectedIDs []string
+	for i := 0; i < 5; i++ {
+		tokenID, err := tm.GenerateToken()
+		if err != nil {
+			t.Fatalf("Failed to generate token: %v", err)
+		}
+		expectedIDs = append(expectedIDs, tokenID)
+	}
+
+	// Get all tokens (returns map[string]int64)
+	tokens := tm.GetTokens()
+
+	// Verify count
+	if len(tokens) != len(expectedIDs) {
+		t.Errorf("Got %d tokens, want %d", len(tokens), len(expectedIDs))
+	}
+
+	// Verify all IDs are present
+	for _, id := range expectedIDs {
+		if _, exists := tokens[id]; !exists {
+			t.Errorf("Token ID %s not found in GetTokens result", id)
+		}
+	}
+}
+
+// TestTokenCount tests counting tokens
+func TestTokenCount(t *testing.T) {
+	tm := NewTokenManager("", 10)
+
+	// Initially should be 0
+	if count := tm.TokenCount(); count != 0 {
+		t.Errorf("Initial count should be 0, got %d", count)
+	}
+
+	// Add some tokens
+	for i := 0; i < 5; i++ {
+		tm.GenerateToken()
+	}
+
+	// Should be 5
+	if count := tm.TokenCount(); count != 5 {
+		t.Errorf("Count should be 5, got %d", count)
+	}
+}
+
