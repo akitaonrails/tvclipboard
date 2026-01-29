@@ -43,9 +43,9 @@ func main() {
 	go h.Run()
 
 	tokenManager := token.NewTokenManager(
-		cfg.PrivateKeyHex,
 		int(cfg.SessionTimeout.Minutes()),
 	)
+	defer tokenManager.StartCleanup(1 * time.Minute)()
 
 	// Determine host:port for QR code
 	// If GetQRHost already includes a port (from PublicURL), use it as-is
@@ -72,6 +72,8 @@ func main() {
 	httpServer := &http.Server{
 		Addr:              ":" + cfg.Port,
 		ReadHeaderTimeout: 5 * time.Second,
+		ReadTimeout:       30 * time.Second,
+		WriteTimeout:      30 * time.Second,
 		IdleTimeout:       60 * time.Second,
 	}
 

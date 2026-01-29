@@ -8,7 +8,7 @@ import (
 
 // TestTokenGeneration tests that tokens are generated correctly
 func TestTokenGeneration(t *testing.T) {
-	tm := NewTokenManager("", 10)
+	tm := NewTokenManager( 10)
 
 	// Generate a token
 	tokenID, err := tm.GenerateToken()
@@ -45,7 +45,7 @@ func TestTokenGeneration(t *testing.T) {
 
 // TestTokenValidationValid tests that valid tokens pass validation
 func TestTokenValidationValid(t *testing.T) {
-	tm := NewTokenManager("", 10)
+	tm := NewTokenManager( 10)
 
 	// Generate a token
 	tokenID, err := tm.GenerateToken()
@@ -62,7 +62,7 @@ func TestTokenValidationValid(t *testing.T) {
 
 // TestTokenValidationInvalid tests that invalid tokens fail validation
 func TestTokenValidationInvalid(t *testing.T) {
-	tm := NewTokenManager("", 10)
+	tm := NewTokenManager( 10)
 
 	// Test with invalid strings
 	invalidTokens := []string{
@@ -85,7 +85,7 @@ func TestTokenValidationInvalid(t *testing.T) {
 
 // TestTokenValidationExpired tests that expired tokens fail validation
 func TestTokenValidationExpired(t *testing.T) {
-	tm := NewTokenManager("", 1) // 1 minute timeout
+	tm := NewTokenManager( 1) // 1 minute timeout
 
 	// Generate a token
 	tokenID, err := tm.GenerateToken()
@@ -111,7 +111,7 @@ func TestTokenValidationExpired(t *testing.T) {
 
 // TestTokenNotFound tests that unknown tokens fail validation
 func TestTokenNotFound(t *testing.T) {
-	tm := NewTokenManager("", 10)
+	tm := NewTokenManager( 10)
 
 	// Generate a token (will be stored)
 	tokenID, err := tm.GenerateToken()
@@ -137,7 +137,7 @@ func TestTokenNotFound(t *testing.T) {
 
 // TestTokenCleanup tests that FIFO limit removes oldest tokens
 func TestTokenCleanup(t *testing.T) {
-	tm := NewTokenManager("", 10)
+	tm := NewTokenManager( 10)
 
 	// Generate some tokens
 	var tokenIDs []string
@@ -193,7 +193,7 @@ func TestTokenManagerTimeout(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		tm := NewTokenManager("", tt.minutes)
+		tm := NewTokenManager( tt.minutes)
 		if tm.timeout != tt.wantTimeout {
 			t.Errorf("NewTokenManager(%d) timeout = %v, want %v", tt.minutes, tm.timeout, tt.wantTimeout)
 		}
@@ -202,7 +202,7 @@ func TestTokenManagerTimeout(t *testing.T) {
 
 // TestMultipleValidTokens tests that multiple tokens can be generated and validated
 func TestMultipleValidTokens(t *testing.T) {
-	tm := NewTokenManager("", 10)
+	tm := NewTokenManager( 10)
 
 	var tokenIDs []string
 
@@ -236,7 +236,7 @@ func TestMultipleValidTokens(t *testing.T) {
 
 // TestTokenUniqueness tests that generated tokens are unique
 func TestTokenUniqueness(t *testing.T) {
-	tm := NewTokenManager("", 10)
+	tm := NewTokenManager( 10)
 
 	// Generate many tokens
 	tokens := make(map[string]bool)
@@ -260,7 +260,7 @@ func TestTokenUniqueness(t *testing.T) {
 
 // TestTokenLimit tests that the max token limit is enforced
 func TestTokenLimit(t *testing.T) {
-	tm := NewTokenManager("", 10)
+	tm := NewTokenManager( 10)
 
 	// Store some tokens manually (bypassing GenerateToken's limit check)
 	tm.mu.Lock()
@@ -300,7 +300,7 @@ func TestTimeout(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		tm := NewTokenManager("", tt.minutes)
+		tm := NewTokenManager( tt.minutes)
 		got := tm.Timeout()
 		if got != tt.wantTimeout {
 			t.Errorf("Timeout() = %v, want %v", got, tt.wantTimeout)
@@ -310,7 +310,7 @@ func TestTimeout(t *testing.T) {
 
 // TestStoreToken tests direct token storage
 func TestStoreToken(t *testing.T) {
-	tm := NewTokenManager("", 10)
+	tm := NewTokenManager( 10)
 
 	// Create a token manually
 	token := SessionToken{
@@ -336,7 +336,7 @@ func TestStoreToken(t *testing.T) {
 
 // TestGetTokens tests retrieving all tokens
 func TestGetTokens(t *testing.T) {
-	tm := NewTokenManager("", 10)
+	tm := NewTokenManager( 10)
 
 	// Generate some tokens
 	var expectedIDs []string
@@ -366,7 +366,7 @@ func TestGetTokens(t *testing.T) {
 
 // TestTokenCount tests counting tokens
 func TestTokenCount(t *testing.T) {
-	tm := NewTokenManager("", 10)
+	tm := NewTokenManager( 10)
 
 	// Initially should be 0
 	if count := tm.TokenCount(); count != 0 {

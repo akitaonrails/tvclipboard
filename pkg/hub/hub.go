@@ -214,6 +214,11 @@ func (c *Client) ReadPump() {
 	}()
 
 	c.Conn.SetReadLimit(c.Hub.maxMessageSize + 1024)
+	c.Conn.SetReadDeadline(time.Now().Add(60 * time.Second))
+	c.Conn.SetPongHandler(func(string) error {
+		c.Conn.SetReadDeadline(time.Now().Add(60 * time.Second))
+		return nil
+	})
 
 	for {
 		_, message, err := c.Conn.ReadMessage()
@@ -262,6 +267,10 @@ func (c *Client) ReadPump() {
 func (c *Client) WritePump() {
 	defer c.Conn.Close()
 
+	// Send periodic pings to detect dead connections
+	ticker := time.NewTicker(30 * time.Second)
+	defer ticker.Stop()
+
 	for {
 		select {
 		case message, ok := <-c.Send:
@@ -270,6 +279,11 @@ func (c *Client) WritePump() {
 			}
 			if err := c.Conn.WriteMessage(websocket.TextMessage, message); err != nil {
 				log.Printf("WriteMessage error for client %s: %v", c.ID, err)
+				return
+			}
+		case <-ticker.C:
+			if err := c.Conn.WriteMessage(websocket.PingMessage, nil); err != nil {
+				log.Printf("Ping error for client %s: %v", c.ID, err)
 				return
 			}
 		case <-c.Hub.stop:

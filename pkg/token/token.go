@@ -1,6 +1,7 @@
 package token
 
 import (
+	"context"
 	"crypto/rand"
 	"fmt"
 	"log"
@@ -50,7 +51,7 @@ func generateRandomID() (string, error) {
 }
 
 // NewTokenManager creates a new TokenManager with timeout and size limits
-func NewTokenManager(privateKeyHex string, timeoutMinutes int) *TokenManager {
+func NewTokenManager(timeoutMinutes int) *TokenManager {
 	timeout := 10 * time.Minute
 	if timeoutMinutes > 0 {
 		timeout = time.Duration(timeoutMinutes) * time.Minute
@@ -77,7 +78,7 @@ func (tm *TokenManager) GenerateToken() (string, error) {
 	var err error
 	maxAttempts := 100
 
-	for range maxAttempts {
+	for i := 0; i < maxAttempts; i++ {
 		tokenID, err = generateRandomID()
 		if err != nil {
 			return "", err
@@ -86,10 +87,10 @@ func (tm *TokenManager) GenerateToken() (string, error) {
 		if _, exists := tm.tokens[tokenID]; !exists {
 			break // Found a unique ID
 		}
-	}
-
-	if tokenID == "" {
-		return "", fmt.Errorf("failed to generate unique token after %d attempts", maxAttempts)
+		// If we've exhausted all attempts, return an error
+		if i == maxAttempts-1 {
+			return "", fmt.Errorf("failed to generate unique token after %d attempts", maxAttempts)
+		}
 	}
 
 	// Add token to map and order list
@@ -154,4 +155,55 @@ func (tm *TokenManager) TokenCount() int {
 	tm.mu.RLock()
 	defer tm.mu.RUnlock()
 	return len(tm.tokens)
+}
+
+// cleanupExpired removes expired tokens from storage
+func (tm *TokenManager) cleanupExpired() {
+	tm.mu.Lock()
+	defer tm.mu.Unlock()
+
+	now := time.Now()
+	expiredCount := 0
+
+	for i := len(tm.tokenOrder) - 1; i >= 0; i-- {
+		id := tm.tokenOrder[i]
+		timestamp, exists := tm.tokens[id]
+		if !exists {
+			// Remove from order list if not in map
+			tm.tokenOrder = append(tm.tokenOrder[:i], tm.tokenOrder[i+1:]...)
+			continue
+		}
+
+		if now.Sub(time.Unix(timestamp, 0)) > tm.timeout {
+			delete(tm.tokens, id)
+			tm.tokenOrder = append(tm.tokenOrder[:i], tm.tokenOrder[i+1:]...)
+			expiredCount++
+		}
+	}
+
+	if expiredCount > 0 {
+		log.Printf("Cleaned up %d expired tokens", expiredCount)
+	}
+}
+
+// StartCleanup starts a background goroutine that periodically cleans up expired tokens
+// Returns a cancel function to stop the cleanup routine
+func (tm *TokenManager) StartCleanup(interval time.Duration) context.CancelFunc {
+	ctx, cancel := context.WithCancel(context.Background())
+
+	go func() {
+		ticker := time.NewTicker(interval)
+		defer ticker.Stop()
+
+		for {
+			select {
+			case <-ticker.C:
+				tm.cleanupExpired()
+			case <-ctx.Done():
+				return
+			}
+		}
+	}()
+
+	return cancel
 }

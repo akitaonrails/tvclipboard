@@ -69,12 +69,12 @@ func (i *I18n) GetLanguage() string {
 
 // T translates a key in current language
 // The key format is "section.key", e.g., "host.title"
-func (i *I18n) T(key string, args ...interface{}) string {
+func (i *I18n) T(key string, args ...any) string {
 	return i.Translate(key, args...)
 }
 
 // Translate translates a key with optional arguments
-func (i *I18n) Translate(key string, args ...interface{}) string {
+func (i *I18n) Translate(key string, args ...any) string {
 	i.mu.RLock()
 	defer i.mu.RUnlock()
 
@@ -137,7 +137,7 @@ func (i *I18n) Translate(key string, args ...interface{}) string {
 
 // GetTranslations returns full translations map for current language (as JSON)
 // This is used to send translations to frontend
-func (i *I18n) GetTranslations() (map[string]interface{}, error) {
+func (i *I18n) GetTranslations() (map[string]any, error) {
 	i.mu.RLock()
 	defer i.mu.RUnlock()
 
@@ -150,7 +150,7 @@ func (i *I18n) GetTranslations() (map[string]interface{}, error) {
 	}
 
 	// Convert to a map suitable for JSON serialization
-	result := make(map[string]interface{})
+	result := make(map[string]any)
 	result["common"] = translations.Common
 	result["host"] = translations.Host
 	result["client"] = translations.Client

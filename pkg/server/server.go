@@ -135,13 +135,23 @@ func (s *Server) Shutdown() {
 	// No-op: server shutdown is handled by http.Server.Shutdown()
 }
 
+// securityHeaders middleware adds security headers to all responses
+func securityHeaders(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("X-Content-Type-Options", "nosniff")
+		w.Header().Set("X-Frame-Options", "DENY")
+		w.Header().Set("Content-Security-Policy", "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; font-src https://cdnjs.cloudflare.com; img-src 'self' data:;")
+		next(w, r)
+	}
+}
+
 // RegisterRoutes registers all HTTP routes
 func (s *Server) RegisterRoutes() {
 	// Configure WebSocket upgrader with allowed origins
 	setUpgraderOrigins(s.allowedOrigins)
 
 	// Main page handler
-	http.HandleFunc("/", s.handleIndex)
+	http.HandleFunc("/", securityHeaders(s.handleIndex))
 
 	// QR code endpoint
 	http.HandleFunc("/qrcode.png", s.handleQRCode)
