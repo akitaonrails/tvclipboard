@@ -213,6 +213,8 @@ func (c *Client) ReadPump() {
 		c.Conn.Close()
 	}()
 
+	c.Conn.SetReadLimit(c.Hub.maxMessageSize + 1024)
+
 	for {
 		_, message, err := c.Conn.ReadMessage()
 		if err != nil {
@@ -251,7 +253,7 @@ func (c *Client) ReadPump() {
 				From:    c.ID,
 			}
 			c.Hub.broadcast <- broadcastMsg
-			log.Printf("Message from %s: %s", c.ID, msg.Content)
+			log.Printf("Message from %s (type: %s, bytes: %d)", c.ID, msg.Type, len(msg.Content))
 		}
 	}
 }

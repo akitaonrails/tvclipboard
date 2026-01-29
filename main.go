@@ -69,7 +69,11 @@ func main() {
 	cfg.LogStartup()
 
 	// Start server with graceful shutdown
-	httpServer := &http.Server{Addr: ":" + cfg.Port}
+	httpServer := &http.Server{
+		Addr:              ":" + cfg.Port,
+		ReadHeaderTimeout: 5 * time.Second,
+		IdleTimeout:       60 * time.Second,
+	}
 
 	go func() {
 		log.Printf("Server listening on :%s", cfg.Port)

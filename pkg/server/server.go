@@ -182,9 +182,7 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 
 	// Inject session timeout as a data attribute and cache busting version
 	htmlContent := string(content)
-	if mode == "client" {
-		htmlContent = qrcode.InjectSessionTimeout(htmlContent, s.qrGenerator.SessionTimeoutSeconds())
-	}
+	htmlContent = qrcode.InjectSessionTimeout(htmlContent, s.qrGenerator.SessionTimeoutSeconds())
 
 	// Add version to all static JS files (using pre-compiled regex)
 	htmlContent = jsRegex.ReplaceAllString(htmlContent, `$1?v=`+s.version+`">`)
@@ -203,7 +201,8 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Inject translations as properly escaped JSON (json.Marshal handles escaping)
-	htmlContent = strings.Replace(htmlContent, "</body>", `<script>window.translations = `+string(i18nJSON)+`;</script></body>`, 1)
+	safeJSON := strings.ReplaceAll(string(i18nJSON), "</", "<\\/")
+	htmlContent = strings.Replace(htmlContent, "</body>", `<script>window.translations = `+safeJSON+`;</script></body>`, 1)
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	if _, err := w.Write([]byte(htmlContent)); err != nil {
@@ -225,7 +224,7 @@ func (s *Server) handleI18n(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// handleQRCode generates and serves a QR code with an encrypted token
+// handleQRCode generates and serves a QR code with a session token
 func (s *Server) handleQRCode(w http.ResponseWriter, r *http.Request) {
 	// Generate new session token
 	token, err := s.tokenManager.GenerateToken()

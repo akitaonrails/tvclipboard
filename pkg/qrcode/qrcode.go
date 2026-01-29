@@ -25,14 +25,14 @@ func NewGenerator(host, scheme string, timeout time.Duration) *Generator {
 	}
 }
 
-// GenerateQRCodeURL generates a URL for the QR code with an encrypted token
-func (g *Generator) GenerateQRCodeURL(encryptedToken string) string {
-	return g.scheme + "://" + g.host + "?token=" + encryptedToken + "&mode=client"
+// GenerateQRCodeURL generates a URL for the QR code with a token ID
+func (g *Generator) GenerateQRCodeURL(tokenID string) string {
+	return g.scheme + "://" + g.host + "?token=" + tokenID + "&mode=client"
 }
 
 // ServeQRCode serves a PNG QR code image
-func (g *Generator) ServeQRCode(w http.ResponseWriter, r *http.Request, encryptedToken string) {
-	url := g.GenerateQRCodeURL(encryptedToken)
+func (g *Generator) ServeQRCode(w http.ResponseWriter, r *http.Request, tokenID string) {
+	url := g.GenerateQRCodeURL(tokenID)
 	png, err := qrcode.Encode(url, qrcode.Medium, 256)
 	if err != nil {
 		http.Error(w, "Failed to generate QR code", http.StatusInternalServerError)

@@ -7,7 +7,8 @@
     let isRevealed = false;
     let ws;
     let timerInterval;
-    const sessionTimeout = 600;
+    const appDiv = document.querySelector('.container');
+    const sessionTimeout = appDiv ? parseInt(appDiv.getAttribute('data-session-timeout') || '600', 10) : 600;
 
     async function showReceivedContent(encryptedContent) {
     const section = document.getElementById('received-section');
