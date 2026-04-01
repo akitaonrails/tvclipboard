@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+IMAGE="${IMAGE:-akitaonrails/tvclipboard:latest}"
+SSH_HOST="${SSH_HOST:-akitaonrails@192.168.0.90}"
+REMOTE_DIR="${REMOTE_DIR:-/var/opt/docker/frank/tvclipboard}"
+KNOWN_HOSTS_FILE="${KNOWN_HOSTS_FILE:-/tmp/codex-ssh/known_hosts}"
+KNOWN_HOSTS_DIR="$(dirname -- "$KNOWN_HOSTS_FILE")"
+SSH_OPTS=(
+  -F /dev/null
+  -o "UserKnownHostsFile=${KNOWN_HOSTS_FILE}"
+  -o StrictHostKeyChecking=accept-new
+)
+
+mkdir -p "$KNOWN_HOSTS_DIR"
+
+echo "Building ${IMAGE}"
+docker build -t "$IMAGE" "$ROOT_DIR"
+
+echo "Pushing ${IMAGE}"
+docker push "$IMAGE"
+
+echo "Restarting ${SSH_HOST}:${REMOTE_DIR}"
+ssh "${SSH_OPTS[@]}" "$SSH_HOST" \
+  "cd '$REMOTE_DIR' && docker compose pull && docker compose down && docker compose up -d"
